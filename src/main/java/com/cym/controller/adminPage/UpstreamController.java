@@ -1,21 +1,9 @@
 package com.cym.controller.adminPage;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpSession;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
-
+import cn.craccd.sqlHelper.bean.Page;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.cym.ext.UpstreamExt;
-import com.cym.model.Remote;
 import com.cym.model.Upstream;
 import com.cym.model.UpstreamServer;
 import com.cym.service.ParamService;
@@ -23,170 +11,174 @@ import com.cym.service.SettingService;
 import com.cym.service.UpstreamService;
 import com.cym.utils.BaseController;
 import com.cym.utils.JsonResult;
-import com.cym.utils.TelnetUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
-import cn.craccd.sqlHelper.bean.Page;
-import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/adminPage/upstream")
 public class UpstreamController extends BaseController {
-	@Autowired
-	UpstreamService upstreamService;
-	@Autowired
-	ParamService paramService;
-	@Autowired
-	SettingService settingService;
+    @Autowired
+    UpstreamService upstreamService;
+    @Autowired
+    ParamService paramService;
+    @Autowired
+    SettingService settingService;
 
-	@RequestMapping("")
-	public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView, Page page, String keywords) {
-		// 检测node
+    @RequestMapping("")
+    public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView, Page page, String keywords) {
+        // 检测node
 //		String upstreamMonitor = settingService.get("upstreamMonitor");
 //		if ("true".equals(upstreamMonitor)) {
 //			testNode();
 //		}
 
-		page = upstreamService.search(page, keywords);
+        page = upstreamService.search(page, keywords);
 
-		List<UpstreamExt> list = new ArrayList<UpstreamExt>();
-		for (Upstream upstream : page.getRecords(Upstream.class)) {
-			UpstreamExt upstreamExt = new UpstreamExt();
-			upstreamExt.setUpstream(upstream);
+        List<UpstreamExt> list = new ArrayList<UpstreamExt>();
+        for (Upstream upstream : page.getRecords(Upstream.class)) {
+            UpstreamExt upstreamExt = new UpstreamExt();
+            upstreamExt.setUpstream(upstream);
 
-			List<String> str = new ArrayList<String>();
-			List<UpstreamServer> servers = upstreamService.getUpstreamServers(upstream.getId());
-			for (UpstreamServer upstreamServer : servers) {
-				str.add(buildStr(upstreamServer, upstream.getProxyType()));
-			}
+            List<String> str = new ArrayList<String>();
+            List<UpstreamServer> servers = upstreamService.getUpstreamServers(upstream.getId());
+            for (UpstreamServer upstreamServer : servers) {
+                str.add(buildStr(upstreamServer, upstream.getProxyType()));
+            }
 
-			upstreamExt.setServerStr(StrUtil.join("", str));
-			list.add(upstreamExt);
-		}
-		page.setRecords(list);
+            upstreamExt.setServerStr(StrUtil.join("", str));
+            list.add(upstreamExt);
+        }
+        page.setRecords(list);
 
-		modelAndView.addObject("page", page);
-		modelAndView.addObject("keywords", keywords);
-		modelAndView.setViewName("/adminPage/upstream/index");
-		return modelAndView;
-	}
+        modelAndView.addObject("page", page);
+        modelAndView.addObject("keywords", keywords);
+        modelAndView.setViewName("/adminPage/upstream/index");
+        return modelAndView;
+    }
 
-	public String buildStr(UpstreamServer upstreamServer, Integer proxyType) {
-		String status = m.get("upstreamStr.noStatus");
-		if (!"none".equals(upstreamServer.getStatus())) {
-			status = upstreamServer.getStatus();
-		}
+    public String buildStr(UpstreamServer upstreamServer, Integer proxyType) {
+        String status = m.get("upstreamStr.noStatus");
+        if (!"none".equals(upstreamServer.getStatus())) {
+            status = upstreamServer.getStatus();
+        }
 
-		String monitorStatus = "";
+        String monitorStatus = "";
 
-		String upstreamMonitor = settingService.get("upstreamMonitor");
-		if ("true".equals(upstreamMonitor)) {
-			monitorStatus += "<td>";
-			if (upstreamServer.getMonitorStatus() == -1) {
-				monitorStatus += "<span class='gray'>" + m.get("upstreamStr.gray") + "</span>";
-			} else if (upstreamServer.getMonitorStatus() == 1) {
-				monitorStatus += "<span class='green'>" + m.get("upstreamStr.green") + "</span>";
-			} else {
-				monitorStatus += "<span class='red'>" + m.get("upstreamStr.red") + "</span>";
-			}
-			monitorStatus += "</td>";
-		}
+        String upstreamMonitor = settingService.get("upstreamMonitor");
+        if ("true".equals(upstreamMonitor)) {
+            monitorStatus += "<td>";
+            if (upstreamServer.getMonitorStatus() == -1) {
+                monitorStatus += "<span class='gray'>" + m.get("upstreamStr.gray") + "</span>";
+            } else if (upstreamServer.getMonitorStatus() == 1) {
+                monitorStatus += "<span class='green'>" + m.get("upstreamStr.green") + "</span>";
+            } else {
+                monitorStatus += "<span class='red'>" + m.get("upstreamStr.red") + "</span>";
+            }
+            monitorStatus += "</td>";
+        }
 //		System.err.println(upstreamServer.getServer() + ":" + upstreamServer.getMonitorStatus());
 
-		if (upstreamServer.getServer().contains(":")) {
-			upstreamServer.setServer("[" + upstreamServer.getServer() + "]");
-		}
+        if (upstreamServer.getServer().contains(":")) {
+            upstreamServer.setServer("[" + upstreamServer.getServer() + "]");
+        }
 
-		return "<tr><td>" + upstreamServer.getServer() + ":" + upstreamServer.getPort() + "</td>"//
-				+ "<td>weight=" + upstreamServer.getWeight() + "</td>"//
-				+ "<td>fail_timeout=" + upstreamServer.getFailTimeout() + "s</td>"//
-				+ "<td>max_fails=" + upstreamServer.getMaxFails() + "</td>"//
-				+ "<td>" + status + "</td>" //
-				+ monitorStatus + "</tr>";
+        return "<tr><td>" + upstreamServer.getServer() + ":" + upstreamServer.getPort() + "</td>"//
+                + "<td>weight=" + upstreamServer.getWeight() + "</td>"//
+                + "<td>fail_timeout=" + upstreamServer.getFailTimeout() + "s</td>"//
+                + "<td>max_fails=" + upstreamServer.getMaxFails() + "</td>"//
+                + "<td>" + status + "</td>" //
+                + monitorStatus + "</tr>";
 
-	}
+    }
 
-	@RequestMapping("addOver")
-	@ResponseBody
-	public JsonResult addOver(String upstreamJson, String upstreamParamJson, String upstreamServerJson) {
-		Upstream upstream = JSONUtil.toBean(upstreamJson, Upstream.class);
-		List<UpstreamServer> upstreamServers = JSONUtil.toList(JSONUtil.parseArray(upstreamServerJson), UpstreamServer.class);
+    @RequestMapping("addOver")
+    @ResponseBody
+    public JsonResult addOver(String upstreamJson, String upstreamParamJson, String upstreamServerJson) {
+        Upstream upstream = JSONUtil.toBean(upstreamJson, Upstream.class);
+        List<UpstreamServer> upstreamServers = JSONUtil.toList(JSONUtil.parseArray(upstreamServerJson), UpstreamServer.class);
 
-		if (StrUtil.isEmpty(upstream.getId())) {
-			Long count = upstreamService.getCountByName(upstream.getName());
-			if (count > 0) {
-				return renderError(m.get("upstreamStr.sameName"));
-			}
-		} else {
-			Long count = upstreamService.getCountByNameWithOutId(upstream.getName(), upstream.getId());
-			if (count > 0) {
-				return renderError(m.get("upstreamStr.sameName"));
-			}
-		}
+        if (StrUtil.isEmpty(upstream.getId())) {
+            Long count = upstreamService.getCountByName(upstream.getName());
+            if (count > 0) {
+                return renderError(m.get("upstreamStr.sameName"));
+            }
+        } else {
+            Long count = upstreamService.getCountByNameWithOutId(upstream.getName(), upstream.getId());
+            if (count > 0) {
+                return renderError(m.get("upstreamStr.sameName"));
+            }
+        }
 
-		upstreamService.addOver(upstream, upstreamServers, upstreamParamJson);
+        upstreamService.addOver(upstream, upstreamServers, upstreamParamJson);
 
-		return renderSuccess();
-	}
+        return renderSuccess();
+    }
 
-	@RequestMapping("detail")
-	@ResponseBody
-	public JsonResult detail(String id) {
+    @RequestMapping("detail")
+    @ResponseBody
+    public JsonResult detail(String id) {
 
-		UpstreamExt upstreamExt = new UpstreamExt();
-		upstreamExt.setUpstream(sqlHelper.findById(id, Upstream.class));
-		upstreamExt.setUpstreamServerList(upstreamService.getUpstreamServers(id));
+        UpstreamExt upstreamExt = new UpstreamExt();
+        upstreamExt.setUpstream(sqlHelper.findById(id, Upstream.class));
+        upstreamExt.setUpstreamServerList(upstreamService.getUpstreamServers(id));
 
-		upstreamExt.setParamJson(paramService.getJsonByTypeId(upstreamExt.getUpstream().getId(), "upstream"));
+        upstreamExt.setParamJson(paramService.getJsonByTypeId(upstreamExt.getUpstream().getId(), "upstream"));
 
-		return renderSuccess(upstreamExt);
-	}
+        return renderSuccess(upstreamExt);
+    }
 
-	@RequestMapping("del")
-	@ResponseBody
-	public JsonResult del(String id) {
+    @RequestMapping("del")
+    @ResponseBody
+    public JsonResult del(String id) {
 
-		upstreamService.del(id);
+        upstreamService.del(id);
 
-		return renderSuccess();
-	}
+        return renderSuccess();
+    }
 
-	@RequestMapping("setMonitor")
-	@ResponseBody
-	public JsonResult setMonitor(String id, Integer monitor) {
-		Upstream upstream = new Upstream();
-		upstream.setId(id);
-		upstream.setMonitor(monitor);
-		sqlHelper.updateById(upstream);
+    @RequestMapping("setMonitor")
+    @ResponseBody
+    public JsonResult setMonitor(String id, Integer monitor) {
+        Upstream upstream = new Upstream();
+        upstream.setId(id);
+        upstream.setMonitor(monitor);
+        sqlHelper.updateById(upstream);
 
-		return renderSuccess();
-	}
+        return renderSuccess();
+    }
 
-	@RequestMapping("upstreamStatus")
-	@ResponseBody
-	public JsonResult upstreamStatus(HttpSession httpSession) {
-		Map<String, String> map = new HashMap<>();
-		map.put("mail", settingService.get("mail"));
+    @RequestMapping("upstreamStatus")
+    @ResponseBody
+    public JsonResult upstreamStatus(HttpSession httpSession) {
+        Map<String, String> map = new HashMap<>();
+        map.put("mail", settingService.get("mail"));
 
-		String upstreamMonitor = settingService.get("upstreamMonitor");
-		map.put("upstreamMonitor", upstreamMonitor != null ? upstreamMonitor : "false");
+        String upstreamMonitor = settingService.get("upstreamMonitor");
+        map.put("upstreamMonitor", upstreamMonitor != null ? upstreamMonitor : "false");
 
-		return renderSuccess(map);
-	}
+        return renderSuccess(map);
+    }
 
-	@RequestMapping("upstreamOver")
-	@ResponseBody
-	public JsonResult upstreamOver(String mail, String upstreamMonitor) {
-		settingService.set("mail", mail);
-		settingService.set("upstreamMonitor", upstreamMonitor);
+    @RequestMapping("upstreamOver")
+    @ResponseBody
+    public JsonResult upstreamOver(String mail, String upstreamMonitor) {
+        settingService.set("mail", mail);
+        settingService.set("upstreamMonitor", upstreamMonitor);
 
-		if (upstreamMonitor.equals("true")) {
-			upstreamService.resetMonitorStatus();
-		}
+        if (upstreamMonitor.equals("true")) {
+            upstreamService.resetMonitorStatus();
+        }
 
-		return renderSuccess();
-	}
+        return renderSuccess();
+    }
 
 }

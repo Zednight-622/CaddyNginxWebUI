@@ -412,8 +412,8 @@ function runCmd(type){
 			
 		}
 	});
-	
-	
+
+	nginxStatus();
 	
 }
 
