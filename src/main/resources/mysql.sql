@@ -14,7 +14,7 @@ CREATE TABLE `admin` (
 )ENGINE=Innodb CHARSET=utf8mb4;
 
 # 基础配置表
-DROP TABLE IF EXISTS `basic`;
+DROP TABLE IF EXISTS `nginx_basic`;
 CREATE TABLE `basic` (
 	`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
     `name` varchar(30),
@@ -36,8 +36,8 @@ create table setting
 )engine=innodb charset=utf8mb4;
 
 # http模块表
-DROP TABLE IF EXISTS `http`;
-create table http
+DROP TABLE IF EXISTS `nginx_http`;
+create table nginx_http
 (
     id          BIGINT not null AUTO_INCREMENT primary key,
     name        varchar(30) UNIQUE,
@@ -49,8 +49,8 @@ create table http
 )engine=innodb charset=utf8mb4;
 
 # upstream模块表
-DROP TABLE IF EXISTS `upstream`;
-create table upstream
+DROP TABLE IF EXISTS `nginx_upstream`;
+create table nginx_upstream
 (
     id          BIGINT not null AUTO_INCREMENT primary key,
     name        varchar(30) UNIQUE,
@@ -62,8 +62,8 @@ create table upstream
 )engine=innodb charset=utf8mb4;
 
 # uptream_server 负载集群表
-DROP TABLE IF EXISTS `upstream_server`;
-create table upstream_server 
+DROP TABLE IF EXISTS `nginx_upstream_server`;
+create table nginx_upstream_server 
 (
     id             BIGINT not null AUTO_INCREMENT primary key,
     upstream_id    bigint,
@@ -79,8 +79,8 @@ create table upstream_server
 )engine=innodb charset=utf8mb4;
 
 # Location模块表
-DROP TABLE IF EXISTS `location`;
-create table location
+DROP TABLE IF EXISTS `nginx_location`;
+create table nginx_location
 (
     id             BIGINT not null AUTO_INCREMENT primary key,
     server_id           bigint,
@@ -99,8 +99,8 @@ create table location
 )engine=innodb charset=utf8mb4;
 
 # Server模块表
-DROP TABLE IF EXISTS `server`;
-create table `server`
+DROP TABLE IF EXISTS `nginx_server`;
+create table `nginx_server`
 (
     id                BIGINT not null AUTO_INCREMENT primary key,
     server_name       TEXT,
