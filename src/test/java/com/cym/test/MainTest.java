@@ -1,5 +1,7 @@
 package com.cym.test;
 
+import com.github.odiszapc.nginxparser.NgxBlock;
+import com.github.odiszapc.nginxparser.NgxParam;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,12 @@ public class MainTest {
 
 	@Test
 	public void testStartUp() throws InterruptedException {
+		NgxBlock blank = new NgxBlock();
+		NgxParam ngxParam = new NgxParam();
+		String http3_on = "http3 on";
+		ngxParam.addValue(http3_on);
+		blank.addEntry(ngxParam);
+		System.out.println(blank.toString());
 
 	}
 

@@ -11,8 +11,20 @@ public class CaddyConf {
         NgxBlock ngxEntries = new NgxBlock();
         NgxParam ngxParam = new NgxParam();
         ngxParam.addValue("http3 on");
+        ngxEntries.addEntry(ngxParam);
+        ngxParam = new NgxParam();
+        ngxParam.addValue("experimental_http3");
+        NgxBlock onDemand = new NgxBlock();
+        onDemand.addValue("on_demand_tls");
+        NgxParam ngxParam1 = new NgxParam();
+        ngxParam1.addValue("interval 5s");
+        onDemand.addEntry(ngxParam1);
+        NgxParam ngxParam2 = new NgxParam();
+        ngxParam2.addValue("burst 2");
+        onDemand.addEntry(ngxParam2);
         ngxEntries.addValue("");
         ngxEntries.addEntry(ngxParam);
+        ngxEntries.addEntry(onDemand);
         config.addEntry(ngxEntries);
         System.out.println(new NgxDumper(config).dump().replace(";",""));
     }
