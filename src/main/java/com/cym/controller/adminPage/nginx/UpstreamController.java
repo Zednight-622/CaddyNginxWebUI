@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import cn.craccd.sqlHelper.bean.Page;
 import cn.hutool.core.util.StrUtil;
@@ -61,7 +61,7 @@ public class UpstreamController extends BaseController {
 
         modelAndView.addObject("page", page);
         modelAndView.addObject("keywords", keywords);
-        modelAndView.setViewName("/adminPage/upstream/index");
+        modelAndView.setViewName("/adminPage/nginxUpstream/index");
         return modelAndView;
     }
 

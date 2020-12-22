@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.io.File;
 import java.net.URL;
@@ -35,7 +35,7 @@ public class WwwController extends BaseController {
 	public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView) {
 
 		modelAndView.addObject("list", sqlHelper.findAll(new Sort("dir", Direction.ASC), Www.class));
-		modelAndView.setViewName("/adminPage/www/index");
+		modelAndView.setViewName("/adminPage/nginxWww/index");
 		return modelAndView;
 	}
 

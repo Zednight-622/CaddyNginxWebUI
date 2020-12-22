@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import javax.servlet.http.HttpSession;
 
@@ -32,7 +32,7 @@ public class LogController extends BaseController {
 		page = logService.search(page);
 
 		modelAndView.addObject("page", page);
-		modelAndView.setViewName("/adminPage/log/index");
+		modelAndView.setViewName("/adminPage/nginxLog/index");
 		return modelAndView;
 	}
 	

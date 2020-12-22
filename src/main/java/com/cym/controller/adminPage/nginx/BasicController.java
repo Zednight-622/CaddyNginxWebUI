@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class BasicController extends BaseController {
 		List<Basic> basicList = sqlHelper.findAll(new Sort().add(Basic::getSeq, Direction.ASC), Basic.class);
 
 		modelAndView.addObject("basicList", basicList);
-		modelAndView.setViewName("/adminPage/basic/index");
+		modelAndView.setViewName("/adminPage/nginxBasic/index");
 		return modelAndView;
 	}
 

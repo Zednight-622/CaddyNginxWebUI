@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class TemplateController extends BaseController {
 		}
 		
 		modelAndView.addObject("templateList", extList);
-		modelAndView.setViewName("/adminPage/template/index");
+		modelAndView.setViewName("/adminPage/nginxTemplate/index");
 		return modelAndView;
 	}
 

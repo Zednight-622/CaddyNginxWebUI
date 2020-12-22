@@ -9,14 +9,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import com.cym.controller.adminPage.CertController;
-import com.cym.controller.adminPage.ConfController;
+import com.cym.controller.adminPage.nginx.CertController;
+import com.cym.controller.adminPage.nginx.ConfController;
 import com.cym.controller.adminPage.RemoteController;
 import com.cym.model.Cert;
 import com.cym.model.Remote;

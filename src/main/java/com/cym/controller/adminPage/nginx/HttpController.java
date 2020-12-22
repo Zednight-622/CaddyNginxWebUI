@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class HttpController extends BaseController {
 		List<Http> httpList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Http.class);
 
 		modelAndView.addObject("httpList", httpList);
-		modelAndView.setViewName("/adminPage/http/index");
+		modelAndView.setViewName("/adminPage/nginxHttp/index");
 		return modelAndView;
 	}
 

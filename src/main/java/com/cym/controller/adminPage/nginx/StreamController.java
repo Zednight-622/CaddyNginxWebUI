@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class StreamController extends BaseController {
 		List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Stream.class);
 
 		modelAndView.addObject("streamList", streamList);
-		modelAndView.setViewName("/adminPage/stream/index");
+		modelAndView.setViewName("/adminPage/nginxStream/index");
 		return modelAndView;
 	}
 

@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +95,7 @@ public class ServerController extends BaseController {
 		modelAndView.addObject("passwordList", sqlHelper.findAll(Password.class));
 
 		modelAndView.addObject("keywords", keywords);
-		modelAndView.setViewName("/adminPage/server/index");
+		modelAndView.setViewName("/adminPage/nginxServer/index");
 		return modelAndView;
 	}
 

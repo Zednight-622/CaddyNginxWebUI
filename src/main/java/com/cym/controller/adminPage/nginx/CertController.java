@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -49,7 +49,7 @@ public class CertController extends BaseController {
 		List<Cert> certs = sqlHelper.findAll(Cert.class);
 
 		modelAndView.addObject("certs", certs);
-		modelAndView.setViewName("/adminPage/cert/index");
+		modelAndView.setViewName("/adminPage/nginxCert/index");
 		return modelAndView;
 	}
 

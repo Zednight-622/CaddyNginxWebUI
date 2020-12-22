@@ -1,4 +1,4 @@
-package com.cym.controller.adminPage;
+package com.cym.controller.adminPage.nginx;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.io.FileUtil;
@@ -12,6 +12,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.cym.config.InitConfig;
 import com.cym.config.VersionConfig;
+import com.cym.controller.adminPage.MainController;
 import com.cym.ext.ConfExt;
 import com.cym.ext.ConfFile;
 import com.cym.service.ConfService;
@@ -70,7 +71,7 @@ public class ConfController extends BaseController {
 
         modelAndView.addObject("tmp", InitConfig.home + "temp/nginx.conf");
 
-        modelAndView.setViewName("/adminPage/conf/index");
+        modelAndView.setViewName("/adminPage/nginxConf/index");
         return modelAndView;
     }
 
