@@ -1,15 +1,16 @@
 server:
   port: 8622
-  servlet: 
+  servlet:
     session:
-      timeout: 7200 
+      timeout: 7200
   tomcat:
     # 默认是200
     threads:
       max: 5 #减少tomcat线程数
+
 spring:
   application:
-    name: nginxWebUI
+    name: Caddy&NginxGUI
   session:
     store-type: jdbc
     jdbc:
@@ -17,8 +18,8 @@ spring:
   jackson:
     default-property-inclusion: NON_NULL
   jmx:
-    enabled: true 
-  database: 
+    enabled: true
+  database:
     type: sqlite
     package: com.cym.model
     print: true
@@ -27,9 +28,9 @@ spring:
 project:
   version: v@project.version@
   home: /home/nginxWebUI/
-  
-logging: 
+
+logging:
   file:
-    name: ${project.home}log/nginxWebUI.log
-  level: 
+    name: ${project.home}log/Caddy&NginxGUI.log
+  level:
     root: info
