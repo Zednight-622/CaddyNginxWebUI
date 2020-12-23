@@ -142,8 +142,20 @@ DROP TABLE IF EXISTS `caddy_snippet`;
 create table `caddy_snippet`
 (
     id                BIGINT not null AUTO_INCREMENT primary key,
-    `key`			  TEXT,
-    `value` 		  TEXT,
+    `name`            TEXT,
+    seq				  int,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
+
+# caddySnippet中键值表
+DROP TABLE IF EXISTS `caddy_snippet_token`;
+create table `caddy_snippet_token`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    `key`            TEXT,
+    `value`            TEXT,
+    snippet_id        bigint,
     seq				  int,
     create_time       datetime,
     update_time       datetime
@@ -156,24 +168,35 @@ create table `caddy_site`
     id                BIGINT not null AUTO_INCREMENT primary key,
     address			  TEXT,
     `matcher_token`   Text,
-    reverse_proxy_id	int,	
+    reverse_proxy_id  BIGINT,
+    `file_server`     Text,
     `import`		  Text,
-    `directive`		  Text,
-    `key`			  TEXT,
-    `value` 		  TEXT,
+    seq				  int,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
+
+# caddySite中的键值模块表
+DROP TABLE IF EXISTS `caddy_site_token`;
+create table `caddy_site_token`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    `key`            TEXT,
+    `value`            TEXT,
+    site_id        bigint,
     seq				  int,
     create_time       datetime,
     update_time       datetime
 )engine=innodb charset=utf8mb4;
 
 # caddySite模块表
-DROP TABLE IF EXISTS `caddy_reverse_proxy_id`;
-create table `caddy_reverse_proxy_id`
+DROP TABLE IF EXISTS `caddy_reverse_proxy`;
+create table `caddy_reverse_proxy`
 (
     id                BIGINT not null AUTO_INCREMENT primary key,
     address			  TEXT,
     `matcher_token`   Text,
-    to_id			  int,
+    reverse_id        bigint,
     lb_policy         Text,
     create_time       datetime,
     update_time       datetime
