@@ -1,6 +1,6 @@
-DROP schema IF EXISTS `nginx`;
-create schema nginx;
-use nginx;
+DROP schema IF EXISTS `cngui`;
+create schema `cngui`;
+use `cngui`;
 # admin 用户表
 DROP TABLE IF EXISTS `admin`;
 CREATE TABLE `admin` (
@@ -13,17 +13,6 @@ CREATE TABLE `admin` (
     `update_time` datetime
 )ENGINE=Innodb CHARSET=utf8mb4;
 
-# 基础配置表
-DROP TABLE IF EXISTS `nginx_basic`;
-CREATE TABLE `basic` (
-	`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
-    `name` varchar(30),
-    `value` TEXT, 
-    `seq` int, 
-    `create_time` datetime, 
-    `update_time` datetime
-)engine=innodb charset=utf8mb4;
-
 # 环境变量表
 DROP TABLE IF EXISTS `setting`;
 create table setting
@@ -32,6 +21,17 @@ create table setting
     `key`         varchar(30) UNIQUE,
     `value`       TEXT,
     `create_time` datetime,
+    `update_time` datetime
+)engine=innodb charset=utf8mb4;
+
+# 基础配置表
+DROP TABLE IF EXISTS `nginx_basic`;
+CREATE TABLE `basic` (
+	`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+    `name` varchar(30),
+    `value` TEXT, 
+    `seq` int, 
+    `create_time` datetime, 
     `update_time` datetime
 )engine=innodb charset=utf8mb4;
 
@@ -125,3 +125,56 @@ create table `nginx_server`
 )engine=innodb charset=utf8mb4;
 
 
+# caddyGlobal模块表
+DROP TABLE IF EXISTS `caddy_global`;
+create table `caddy_global`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    `key`			  TEXT,
+    `value` 		  TEXT,
+    seq				  int,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
+
+# caddySnippet模块表
+DROP TABLE IF EXISTS `caddy_snippet`;
+create table `caddy_snippet`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    `key`			  TEXT,
+    `value` 		  TEXT,
+    seq				  int,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
+
+# caddySite模块表
+DROP TABLE IF EXISTS `caddy_site`;
+create table `caddy_site`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    address			  TEXT,
+    `matcher_token`   Text,
+    reverse_proxy_id	int,	
+    `import`		  Text,
+    `directive`		  Text,
+    `key`			  TEXT,
+    `value` 		  TEXT,
+    seq				  int,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
+
+# caddySite模块表
+DROP TABLE IF EXISTS `caddy_reverse_proxy_id`;
+create table `caddy_reverse_proxy_id`
+(
+    id                BIGINT not null AUTO_INCREMENT primary key,
+    address			  TEXT,
+    `matcher_token`   Text,
+    to_id			  int,
+    lb_policy         Text,
+    create_time       datetime,
+    update_time       datetime
+)engine=innodb charset=utf8mb4;
