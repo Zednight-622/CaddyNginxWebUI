@@ -37,7 +37,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/adminPage/caddyfile")
-public class ConfController extends BaseController {
+public class CaddyfileController extends BaseController {
     @Autowired
     UpstreamService upstreamService;
     @Autowired
@@ -207,15 +207,15 @@ public class ConfController extends BaseController {
 
     @RequestMapping(value = "saveCmd")
     @ResponseBody
-    public JsonResult saveCmd(String nginxPath, String nginxExe, String nginxDir) {
-        nginxPath = nginxPath.replace("\\", "/");
-        settingService.set("nginxPath", nginxPath);
+    public JsonResult saveCmd(String caddyPath, String caddyExe, String caddyDir) {
+        caddyPath = caddyPath.replace("\\", "/");
+        settingService.set("caddyPath", caddyPath);
 
-        nginxExe = nginxExe.replace("\\", "/");
-        settingService.set("nginxExe", nginxExe);
+        caddyExe = caddyExe.replace("\\", "/");
+        settingService.set("caddyExe", caddyExe);
 
-        nginxDir = nginxDir.replace("\\", "/");
-        settingService.set("nginxDir", nginxDir);
+        caddyDir = caddyDir.replace("\\", "/");
+        settingService.set("caddyDir", caddyDir);
 
         return renderSuccess();
     }
@@ -366,30 +366,31 @@ public class ConfController extends BaseController {
 
     @RequestMapping(value = "loadOrg")
     @ResponseBody
-    public JsonResult loadOrg(String nginxPath) {
+    public JsonResult loadOrg(String caddyPath) {
         String decompose = settingService.get("decompose");
         ConfExt confExt = confService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
 
-        if (StrUtil.isNotEmpty(nginxPath) && FileUtil.exist(nginxPath) && FileUtil.isFile(nginxPath)) {
-            String orgStr = FileUtil.readString(nginxPath, StandardCharsets.UTF_8);
+        if (StrUtil.isNotEmpty(caddyPath) && FileUtil.exist(caddyPath) && FileUtil.isFile(caddyPath)) {
+            String orgStr = FileUtil.readString(caddyPath, StandardCharsets.UTF_8);
             confExt.setConf(orgStr);
 
             for (ConfFile confFile : confExt.getFileList()) {
                 confFile.setConf("");
 
-                String filePath = nginxPath.replace("nginx.conf", "conf.d/" + confFile.getName());
+                String filePath = caddyPath.replace("nginx.conf", "conf.d/" + confFile.getName());
                 if (FileUtil.exist(filePath)) {
                     confFile.setConf(FileUtil.readString(filePath, StandardCharsets.UTF_8));
                 }
             }
 
+
             return renderSuccess(confExt);
         } else {
-            if (FileUtil.isDirectory(nginxPath)) {
+            if (FileUtil.isDirectory(caddyPath)) {
                 return renderError(m.get("confStr.error2"));
             }
 
-            return renderError(m.get("confStr.notExist"));
+            return renderError(m.get("confStr.caddyNotExist"));
         }
 
     }

@@ -46,7 +46,7 @@ input[type='radio']{
 			<!-- 内容主体区域 -->
 			<div style="padding: 15px">
 				<fieldset class="layui-elem-field layui-field-title">
-					<legend>${menuStr.conf}</legend>
+					<legend>${menuStr.caddy}</legend>
 				</fieldset>
 				<form id="addForm">
 					<div class="layui-form">
@@ -55,7 +55,7 @@ input[type='radio']{
 								<label class="layui-form-label" style="width: 100px;">${confStr.caddyConfPath}<span class="red">*</span></label>
 							</div>
 							<div class="layui-input-inline">
-								<input type="text" id="caddyPath" name="caddyPath" class="layui-input" style="width: 210px;" value="${caddyPath}" oninput="saveCmd()">
+								<input type="text" id="caddyPath" name="caddyPath" class="layui-input" style="width: 210px;" value="${caddyPath}" oninput="saveCaddyCmd()">
 							</div>
 							<div class="layui-input-inline">
 								<i class="layui-icon layui-icon-export" onclick="selectRootCustom('caddyPath')"></i>
@@ -65,7 +65,7 @@ input[type='radio']{
 								<label class="layui-form-label" style="width: 100px;">${confStr.caddyExe}<span class="red">*</span></label>
 							</div>
 							<div class="layui-input-inline">
-								<input type="text" id="caddyExe" name="caddyExe" class="layui-input" style="width: 210px;" value="${caddyExe}" oninput="saveCmd()">
+								<input type="text" id="caddyExe" name="caddyExe" class="layui-input" style="width: 210px;" value="${caddyExe}" oninput="saveCaddyCmd()">
 							</div>
 							<div class="layui-input-inline">
 								<i class="layui-icon layui-icon-export" onclick="selectRootCustom('caddyExe')"></i>
@@ -75,7 +75,7 @@ input[type='radio']{
 								<label class="layui-form-label" style="width: 100px;">${confStr.caddyDir}</label>
 							</div>
 							<div class="layui-input-inline">
-								<input type="text" id="caddyDir" name="caddyDir" class="layui-input" style="width: 210px;" value="${caddyDir}" oninput="saveCmd()">
+								<input type="text" id="caddyDir" name="caddyDir" class="layui-input" style="width: 210px;" value="${caddyDir}" oninput="saveCaddyCmd()">
 							</div>
 							<div class="layui-input-inline">
 								<i class="layui-icon layui-icon-export" onclick="selectRootCustom('caddyDir')"></i>
@@ -108,10 +108,10 @@ input[type='radio']{
 							</div>
 
 							<div class="layui-inline" style="margin-left: 20px;">
-								<button type="button" class="layui-btn" onclick="runCmd('cmdStart')">${confStr.start}</button>
+								<button type="button" class="layui-btn" onclick="runCmd('cmdStart')">${confStr.startCaddy}</button>
 							</div>
 							<div class="layui-inline">
-								<button type="button" class="layui-btn" onclick="runCmd('cmdStop')">${confStr.stop}</button>
+								<button type="button" class="layui-btn" onclick="runCmd('cmdStop')">${confStr.stopCaddy}</button>
 							</div>
 							<div class="layui-inline">
 								<label class="layui-form-label" style="width: 150px;" id="nginxStatus"></label>
@@ -186,7 +186,7 @@ input[type='radio']{
 	<script src="${ctx}/lib/jsdifflib/difflib.js" type="text/javascript"></script>
 	<script src="${ctx}/lib/jsdifflib/diffview.js" type="text/javascript"></script>
 	<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
-	<script src="${ctx}/js/adminPage/conf/index.js?v=${jsrandom}" type="text/javascript"></script>
+	<script src="${ctx}/js/adminPage/caddyfile/index.js?v=${jsrandom}" type="text/javascript"></script>
 </body>
 
 
