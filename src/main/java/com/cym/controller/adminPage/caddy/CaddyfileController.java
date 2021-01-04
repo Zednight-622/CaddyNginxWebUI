@@ -15,10 +15,7 @@ import com.cym.config.VersionConfig;
 import com.cym.controller.adminPage.MainController;
 import com.cym.ext.ConfExt;
 import com.cym.ext.ConfFile;
-import com.cym.service.ConfService;
-import com.cym.service.ServerService;
-import com.cym.service.SettingService;
-import com.cym.service.UpstreamService;
+import com.cym.service.*;
 import com.cym.utils.BaseController;
 import com.cym.utils.JsonResult;
 import com.cym.utils.NginxUtils;
@@ -45,7 +42,7 @@ public class CaddyfileController extends BaseController {
     @Autowired
     ServerService serverService;
     @Autowired
-    ConfService confService;
+    CaddyfileService caddyService;
     @Autowired
     MainController mainController;
 
@@ -122,7 +119,7 @@ public class CaddyfileController extends BaseController {
 //		}
 
         try {
-            confService.replace(nginxPath, nginxContent, subContent, subName);
+            caddyService.replace(nginxPath, nginxContent, subContent, subName);
             return renderSuccess(m.get("confStr.replaceSuccess"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -134,7 +131,7 @@ public class CaddyfileController extends BaseController {
 
     public String getReplaceJson() {
         String decompose = settingService.get("decompose");
-        ConfExt confExt = confService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
+        ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
 
         URLEncoder urlEncoder = new URLEncoder();
 
@@ -168,7 +165,7 @@ public class CaddyfileController extends BaseController {
         String fileTemp = InitConfig.home + "temp/nginx.conf";
 
         try {
-            ConfExt confExt = confService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), true);
+            ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), true);
             FileUtil.writeString(confExt.getConf(), fileTemp, CharsetUtil.CHARSET_UTF_8);
 
             ClassPathResource resource = new ClassPathResource("mime.types");
@@ -357,7 +354,7 @@ public class CaddyfileController extends BaseController {
     @RequestMapping(value = "loadCaddyfile")
     @ResponseBody
     public JsonResult loadCaddyfile() {
-        ConfExt confExt = confService.buildCaddyfile();
+        ConfExt confExt = caddyService.buildCaddyfile();
         return renderSuccess(confExt);
     }
 
@@ -367,7 +364,7 @@ public class CaddyfileController extends BaseController {
     public JsonResult loadConf() {
         String decompose = settingService.get("decompose");
 
-        ConfExt confExt = confService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
+        ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
         return renderSuccess(confExt);
     }
 
@@ -375,7 +372,7 @@ public class CaddyfileController extends BaseController {
     @ResponseBody
     public JsonResult loadOrg(String caddyPath) {
         String decompose = settingService.get("decompose");
-        ConfExt confExt = confService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
+        ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), false);
 
         if (StrUtil.isNotEmpty(caddyPath) && FileUtil.exist(caddyPath) && FileUtil.isFile(caddyPath)) {
             String orgStr = FileUtil.readString(caddyPath, StandardCharsets.UTF_8);
