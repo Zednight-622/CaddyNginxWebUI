@@ -99,22 +99,13 @@ input[type='radio']{
 								<button type="button" class="layui-btn layui-btn-normal" onclick="reload()">${confStr.reload}</button>
 							</div>
 
-							
-							<div class="layui-inline">
-								<label class="layui-form-label" style="width: 120px;">${confStr.decompose}</label>
-							</div>
-							<div class="layui-inline">
-								<input type="checkbox" name="switch" lay-filter="decompose" lay-text="ON|OFF" lay-skin="switch" ${(decompose=='true')?string('checked','')}>
-							</div>
+
 
 							<div class="layui-inline" style="margin-left: 20px;">
 								<button type="button" class="layui-btn" onclick="runCmd('cmdStart')">${confStr.startCaddy}</button>
 							</div>
 							<div class="layui-inline">
 								<button type="button" class="layui-btn" onclick="runCmd('cmdStop')">${confStr.stopCaddy}</button>
-							</div>
-							<div class="layui-inline">
-								<label class="layui-form-label" style="width: 150px;" id="nginxStatus"></label>
 							</div>
 
 
