@@ -151,12 +151,12 @@ public class CaddyfileController extends BaseController {
 
     @RequestMapping(value = "check")
     @ResponseBody
-    public JsonResult check(String nginxPath, String nginxExe, String nginxDir) {
-        if (nginxExe == null) {
-            nginxExe = settingService.get("nginxExe");
+    public JsonResult check(String caddyPath, String caddyExe, String caddyDir) {
+        if (caddyExe == null) {
+            caddyExe = settingService.get("caddyExe");
         }
-        if (nginxDir == null) {
-            nginxDir = settingService.get("nginxDir");
+        if (caddyDir == null) {
+            caddyDir = settingService.get("caddyDir");
         }
 
         String decompose = settingService.get("decompose");
@@ -183,11 +183,11 @@ public class CaddyfileController extends BaseController {
             }
 
             if (SystemTool.isWindows()) {
-                cmd = nginxExe + " -t -c " + fileTemp + " -p " + nginxDir;
+                cmd = caddyExe + " -t -c " + fileTemp + " -p " + caddyDir;
             } else {
-                cmd = nginxExe + " -t -c " + fileTemp;
-                if (StrUtil.isNotEmpty(nginxDir)) {
-                    cmd += " -p " + nginxDir;
+                cmd = caddyExe + " -t -c " + fileTemp;
+                if (StrUtil.isNotEmpty(caddyDir)) {
+                    cmd += " -p " + caddyDir;
                 }
             }
             rs = RuntimeUtil.execForStr(cmd);
@@ -202,7 +202,6 @@ public class CaddyfileController extends BaseController {
         } else {
             return renderError(cmd + "<br>" + m.get("confStr.verifyFail") + "<br>" + rs.replace("\n", "<br>"));
         }
-
     }
 
     @RequestMapping(value = "saveCmd")
@@ -354,6 +353,14 @@ public class CaddyfileController extends BaseController {
     public JsonResult getLastCmd(String type) {
         return renderSuccess(settingService.get(type));
     }
+
+    @RequestMapping(value = "loadCaddyfile")
+    @ResponseBody
+    public JsonResult loadCaddyfile() {
+        ConfExt confExt = confService.buildCaddyfile();
+        return renderSuccess(confExt);
+    }
+
 
     @RequestMapping(value = "loadConf")
     @ResponseBody

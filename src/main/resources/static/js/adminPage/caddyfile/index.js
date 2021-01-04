@@ -90,8 +90,8 @@ function replace() {
 
 function loadConf() {
     $.ajax({
-        type : 'POST',
-        url : ctx + '/adminPage/conf/loadConf',
+        type : 'GET',
+        url : ctx + '/adminPage/caddyfile/loadCaddyfile',
         data : {
 
         },
@@ -173,18 +173,18 @@ function showHide(id){
 }
 
 function check() {
-    if ($("#nginxPath").val() == '') {
+    if ($("#caddyPath").val() == '') {
         layer.msg(confStr.jserror2);
         return;
     }
 
-    if ($("#nginxExe").val() == '') {
+    if ($("#caddyExe").val() == '') {
         layer.msg(confStr.jserror3);
         return;
     }
 
-    if($("#nginxExe").val().indexOf('/') > -1 || $("#nginxExe").val().indexOf('\\') > -1){
-        if ($("#nginxDir").val() == '') {
+    if($("#caddyExe").val().indexOf('/') > -1 || $("#caddyExe").val().indexOf('\\') > -1){
+        if ($("#caddyDir").val() == '') {
             layer.msg(confStr.jserror4);
             return;
         }
@@ -193,7 +193,7 @@ function check() {
     layer.load();
     $.ajax({
         type : 'POST',
-        url : ctx + '/adminPage/conf/check',
+        url : ctx + '/adminPage/caddyfile/check',
         data : {
             nginxPath : $("#nginxPath").val(),
             nginxExe : $("#nginxExe").val(),
@@ -366,13 +366,10 @@ function runCmd(type){
                 $("#nginxStop").hide();
                 $("#nginxStart").hide();
 
-                var dir = "";
-                if($("#nginxDir").val()!=''){
-                    dir =  " -p " + $("#nginxDir").val();
-                }
 
-                $("#startNormal").attr("title", $("#nginxExe").val() + " -c " + $("#nginxPath").val() + dir);
-                $("#stopNormal").attr("title", $("#nginxExe").val() + " -s stop" + dir);
+
+                $("#startNormal").attr("title", $("#caddyExe").val() + " start --config " + $("#caddyPath").val());
+                $("#stopNormal").attr("title", $("#caddyExe").val() + " stop ");
 
                 var cmd = data.obj;
                 if(type == 'cmdStop'){

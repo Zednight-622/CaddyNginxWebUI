@@ -43,6 +43,22 @@ public class ConfService {
         this.templateService = templateService;
     }
 
+    public synchronized ConfExt buildCaddyfile() {
+        ConfExt confExt = new ConfExt();
+        String caddyPath = settingService.get("caddyPath");
+        //TODO: 从数据库中读取配置
+        NgxConfig config = new NgxConfig();
+        NgxParam global = new NgxParam();
+        global.addValue("localhost");
+        config.addEntry(global);
+        global = new NgxParam();
+        global.addValue("response \"Hello World!\"");
+        config.addEntry(global);
+        String replace = new NgxDumper(config).dump().replace(";", "");
+        confExt.setConf(replace);
+        return confExt;
+    }
+
     public synchronized ConfExt buildConf(Boolean decompose, Boolean check) {
         ConfExt confExt = new ConfExt();
         confExt.setFileList(new ArrayList<>());
