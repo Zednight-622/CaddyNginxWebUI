@@ -119,7 +119,7 @@ public class CaddyfileController extends BaseController {
 //		}
 
         try {
-            caddyService.replace(nginxPath, nginxContent, subContent, subName);
+//            caddyService.replace(nginxPath, nginxContent, subContent, subName);
             return renderSuccess(m.get("confStr.replaceSuccess"));
         } catch (Exception e) {
             e.printStackTrace();

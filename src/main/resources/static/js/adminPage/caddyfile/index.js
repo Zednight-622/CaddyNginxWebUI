@@ -47,15 +47,15 @@ function nginxStatus() {
 
 
 function replace() {
-    if ($("#nginxPath").val() == '') {
+    if ($("#caddyPath").val() == '') {
         layer.msg(confStr.jserror2);
         return;
     }
 
 
     var json = {};
-    json.nginxPath = $("#nginxPath").val();
-    json.nginxContent = Base64.encode(encodeURIComponent($("#nginxContent").val().replace(/\~/g, "<wave>")));
+    json.caddyPath = $("#caddyPath").val();
+    json.caddyContent = Base64.encode(encodeURIComponent($("#caddyContent").val().replace(/\~/g, "<wave>")));
     json.subContent = [];
     json.subName = [];
     $("textarea[name='subContent']").each(function(){
@@ -67,7 +67,7 @@ function replace() {
 
     $.ajax({
         type : 'POST',
-        url : ctx + '/adminPage/conf/replace',
+        url : ctx + '/adminPage/caddyfile/replace',
         data : {
             json: JSON.stringify(json)
         },
