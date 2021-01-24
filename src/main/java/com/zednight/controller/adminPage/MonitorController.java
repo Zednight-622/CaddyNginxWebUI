@@ -1,0 +1,76 @@
+package com.zednight.controller.adminPage;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.zednight.ext.MonitorInfo;
+import com.zednight.ext.NetworkInfo;
+import com.zednight.service.MonitorService;
+import com.zednight.service.SettingService;
+import com.zednight.utils.BaseController;
+import com.zednight.utils.JsonResult;
+import com.zednight.utils.NetWorkUtil;
+
+import cn.hutool.core.util.StrUtil;
+
+@RequestMapping("/adminPage/monitor")
+@Controller
+public class MonitorController extends BaseController {
+	@Autowired
+	MonitorService monitorService;
+	@Autowired
+	SettingService settingService;
+
+	@RequestMapping("")
+	public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView) {
+
+		modelAndView.addObject("list", monitorService.getDiskInfo());
+
+		String nginxPath = settingService.get("nginxPath");
+		String nginxExe = settingService.get("nginxExe");
+		String nginxDir = settingService.get("nginxDir");
+
+		modelAndView.addObject("nginxDir", nginxDir);
+		modelAndView.addObject("nginxExe", nginxExe);
+		modelAndView.addObject("nginxPath", nginxPath);
+
+		Boolean isInit = StrUtil.isNotEmpty(nginxExe);
+		modelAndView.addObject("isInit", isInit.toString());
+
+		modelAndView.setViewName("/adminPage/monitor/index");
+		return modelAndView;
+	}
+
+	@RequestMapping("check")
+	@ResponseBody
+	public JsonResult check() {
+
+		MonitorInfo monitorInfo = monitorService.getMonitorInfoOshi();
+
+		return renderSuccess(monitorInfo);
+	}
+	
+	@RequestMapping("network")
+	@ResponseBody
+	public JsonResult network() {
+
+		NetworkInfo networkInfo = NetWorkUtil.getNetworkDownUp();
+		//System.err.println(JSONUtil.toJsonStr(networkInfo));
+		return renderSuccess(networkInfo);
+	}
+
+	@RequestMapping("addNginxGiudeOver")
+	@ResponseBody
+	public JsonResult addNginxGiudeOver(String nginxDir, String nginxExe) {
+
+		settingService.set("nginxDir", nginxDir);
+		settingService.set("nginxExe", nginxExe);
+		return renderSuccess();
+	}
+
+}
