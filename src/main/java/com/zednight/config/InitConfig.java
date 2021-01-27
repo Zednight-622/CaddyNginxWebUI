@@ -78,6 +78,11 @@ public class InitConfig {
 			ClassPathResource resource = new ClassPathResource("mime.types");
 			FileUtil.writeFromStream(resource.getInputStream(), home + "mime.types");
 		}
+
+		if(!FileUtil.exist(home + "Caddyfile")) {
+			ClassPathResource resource = new ClassPathResource("Caddyfile");
+			FileUtil.writeFromStream(resource.getInputStream(), home + "Caddyfile");
+		}
 		
 		// 设置nginx配置文件
 		String nginxPath = settingService.get("nginxPath");
@@ -85,6 +90,14 @@ public class InitConfig {
 			nginxPath = home + "nginx.conf";
 			// 设置nginx.conf路径
 			settingService.set("nginxPath", nginxPath);
+		}
+
+		// 设置caddy配置文件
+		String caddyPath = settingService.get("caddyPath");
+		if (StrUtil.isEmpty(caddyPath)) {
+			caddyPath = home + "Caddyfile";
+			// 设置caddyfile路径
+			settingService.set("caddyPath", caddyPath);
 		}
 
 		if (SystemTool.isLinux()) {

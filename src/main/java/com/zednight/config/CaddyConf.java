@@ -8,24 +8,12 @@ import com.github.odiszapc.nginxparser.NgxParam;
 public class CaddyConf {
     public static void main(String[] args) {
         NgxConfig config = new NgxConfig();
-        NgxBlock ngxEntries = new NgxBlock();
+        NgxBlock site = new NgxBlock();
+        site.addValue("localhost");
         NgxParam ngxParam = new NgxParam();
-        ngxParam.addValue("http3 on");
-        ngxEntries.addEntry(ngxParam);
-        ngxParam = new NgxParam();
-        ngxParam.addValue("experimental_http3");
-        NgxBlock onDemand = new NgxBlock();
-        onDemand.addValue("on_demand_tls");
-        NgxParam ngxParam1 = new NgxParam();
-        ngxParam1.addValue("interval 5s");
-        onDemand.addEntry(ngxParam1);
-        NgxParam ngxParam2 = new NgxParam();
-        ngxParam2.addValue("burst 2");
-        onDemand.addEntry(ngxParam2);
-        ngxEntries.addValue("");
-        ngxEntries.addEntry(ngxParam);
-        ngxEntries.addEntry(onDemand);
-        config.addEntry(ngxEntries);
+        ngxParam.addValue("response \"Hello World!\"");
+        site.addEntry(ngxParam);
+        config.addEntry(site);
         System.out.println(new NgxDumper(config).dump().replace(";",""));
     }
 }
