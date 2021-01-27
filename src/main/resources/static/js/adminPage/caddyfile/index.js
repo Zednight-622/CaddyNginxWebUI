@@ -100,8 +100,7 @@ function loadConf() {
             //layer.closeAll();
             if (data.success) {
                 var confExt = data.obj
-                $("#nginxContent").val(confExt.conf)
-
+                $("#caddyContent").val(confExt.conf)
                 var html = "";
                 for(var i=0;i<confExt.fileList.length;i++){
                     var confFile = confExt.fileList[i];
@@ -112,7 +111,7 @@ function loadConf() {
 					`;
                 }
 
-                $("#nginxContentOther").html(html);
+                $("#caddyContentOther").html(html);
 
                 $(".conf").setTextareaCount();
                 $(".sub").parent().hide();

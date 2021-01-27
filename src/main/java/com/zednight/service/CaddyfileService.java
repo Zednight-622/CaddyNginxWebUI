@@ -43,192 +43,182 @@ public class CaddyfileService {
     }
 
     public synchronized ConfExt buildCaddyfile() {
-        ConfExt confExt = new ConfExt();
-        String caddyPath = settingService.get("caddyPath");
-        //TODO: 从数据库中读取配置
-        NgxConfig config = new NgxConfig();
-        NgxParam global = new NgxParam();
-        global.addValue("localhost");
-        config.addEntry(global);
-        global = new NgxParam();
-        global.addValue("response \"Hello World!\"");
-        config.addEntry(global);
-        String replace = new NgxDumper(config).dump().replace(";", "");
-        confExt.setConf(replace);
-        return confExt;
+        return buildConf(false, false);
     }
 
     public synchronized ConfExt buildConf(Boolean decompose, Boolean check) {
         ConfExt confExt = new ConfExt();
         confExt.setFileList(new ArrayList<>());
 
-        String nginxPath = settingService.get("nginxPath");
+        String caddyPath = settingService.get("caddyPath");
         if (check) {
-            nginxPath = InitConfig.home + "temp/nginx.conf";
+            caddyPath = InitConfig.home + "temp/caddyfile";
         }
         try {
 
             NgxConfig ngxConfig = new NgxConfig();
-
+            NgxBlock globalBlock = new NgxBlock();
+            globalBlock.addValue("");
             // 获取基本参数
-            List<Basic> basicList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Basic.class);
-            for (Basic basic : basicList) {
+            List<Global> globals = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Global.class);
+            for (Global g : globals) {
                 NgxParam ngxParam = new NgxParam();
-                ngxParam.addValue(basic.getName().trim() + " " + basic.getValue().trim());
-                ngxConfig.addEntry(ngxParam);
+                ngxParam.addValue(g.getName().trim() + " " + g.getValue().trim());
+                globalBlock.addEntry(ngxParam);
             }
+            ngxConfig.addEntry(globalBlock);
 
             // 获取http
-            List<Http> httpList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Http.class);
-            boolean hasHttp = false;
-            NgxBlock ngxBlockHttp = new NgxBlock();
-            ngxBlockHttp.addValue("http");
-            for (Http http : httpList) {
-                NgxParam ngxParam = new NgxParam();
-                ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
-                ngxBlockHttp.addEntry(ngxParam);
+//            List<Http> httpList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Http.class);
+//            boolean hasHttp = false;
+//            NgxBlock ngxBlockHttp = new NgxBlock();
+//            ngxBlockHttp.addValue("http");
+//            for (Http http : httpList) {
+//                NgxParam ngxParam = new NgxParam();
+//                ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
+//                ngxBlockHttp.addEntry(ngxParam);
+//
+//                hasHttp = true;
+//            }
+//
+//            // 添加upstream
+//            NgxParam ngxParam;
+//            List<Upstream> upstreams = upstreamService.getListByProxyType(0);
+//
+//            for (Upstream upstream : upstreams) {
+//                NgxBlock ngxBlockServer = new NgxBlock();
+//                ngxBlockServer.addValue("upstream " + upstream.getName().trim());
+//
+//                if (StrUtil.isNotEmpty(upstream.getTactics())) {
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue(upstream.getTactics());
+//                    ngxBlockServer.addEntry(ngxParam);
+//                }
+//
+//                List<UpstreamServer> upstreamServers = upstreamService.getUpstreamServers(upstream.getId());
+//                for (UpstreamServer upstreamServer : upstreamServers) {
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue("server " + buildNodeStr(upstreamServer));
+//                    ngxBlockServer.addEntry(ngxParam);
+//                }
+//
+//                // 自定义参数
+//                List<Param> paramList = paramService.getListByTypeId(upstream.getId(), "upstream");
+//                for (Param param : paramList) {
+//                    setSameParam(param, ngxBlockServer);
+//                }
+//
+//                hasHttp = true;
+//
+//                if (decompose) {
+//                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
+//
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
+//                    ngxBlockHttp.addEntry(ngxParam);
+//
+//                } else {
+//                    ngxBlockHttp.addEntry(ngxBlockServer);
+//                }
+//
+//            }
+//
+//            // 添加server
+//            List<Server> servers = serverService.getListByProxyType(new Integer[]{0});
+//            for (Server server : servers) {
+//                if (server.getEnable() == null || !server.getEnable()) {
+//                    continue;
+//                }
+//
+//                NgxBlock ngxBlockServer = bulidBlockServer(server);
+//                hasHttp = true;
+//
+//                // 是否需要分解
+//                if (decompose) {
+//                    String name = "all";
+//
+//                    if (StrUtil.isNotEmpty(server.getServerName())) {
+//                        name = server.getServerName();
+//                    }
+//
+//                    addConfFile(confExt, name + ".conf", ngxBlockServer);
+//
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/" + name + ".conf"));
+//
+//                    if (noContain(ngxBlockHttp, ngxParam)) {
+//                        ngxBlockHttp.addEntry(ngxParam);
+//                    }
+//
+//                } else {
+//                    ngxBlockHttp.addEntry(ngxBlockServer);
+//                }
+//
+//            }
+//            if (hasHttp) {
+//                ngxConfig.addEntry(ngxBlockHttp);
+//            }
+//
+//            // TCP/UDP转发
+//            // 创建stream
+//            List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Stream.class);
+//            boolean hasStream = false;
+//            NgxBlock ngxBlockStream = new NgxBlock();
+//            ngxBlockStream.addValue("stream");
+//            for (Stream stream : streamList) {
+//                ngxParam = new NgxParam();
+//                ngxParam.addValue(stream.getName() + " " + stream.getValue());
+//                ngxBlockStream.addEntry(ngxParam);
+//
+//                hasStream = true;
+//            }
+//
+//            // 添加upstream
+//            upstreams = upstreamService.getListByProxyType(1);
+//            for (Upstream upstream : upstreams) {
+//                NgxBlock ngxBlockServer = buildBlockUpstream(upstream);
+//
+//                if (decompose) {
+//                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
+//
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
+//                    ngxBlockStream.addEntry(ngxParam);
+//                } else {
+//                    ngxBlockStream.addEntry(ngxBlockServer);
+//                }
+//
+//                hasStream = true;
+//            }
+//
+//            // 添加server
+//            servers = serverService.getListByProxyType(new Integer[]{1, 2});
+//            for (Server server : servers) {
+//                if (server.getEnable() == null || !server.getEnable()) {
+//                    continue;
+//                }
+//
+//                NgxBlock ngxBlockServer = bulidBlockServer(server);
+//
+//                if (decompose) {
+//                    addConfFile(confExt, "stream." + server.getListen() + ".conf", ngxBlockServer);
+//
+//                    ngxParam = new NgxParam();
+//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/stream." + server.getListen() + ".conf"));
+//                    ngxBlockStream.addEntry(ngxParam);
+//                } else {
+//                    ngxBlockStream.addEntry(ngxBlockServer);
+//                }
+//
+//                hasStream = true;
+//            }
+//
+//            if (hasStream) {
+//                ngxConfig.addEntry(ngxBlockStream);
+//            }
 
-                hasHttp = true;
-            }
-
-            // 添加upstream
-            NgxParam ngxParam;
-            List<Upstream> upstreams = upstreamService.getListByProxyType(0);
-
-            for (Upstream upstream : upstreams) {
-                NgxBlock ngxBlockServer = new NgxBlock();
-                ngxBlockServer.addValue("upstream " + upstream.getName().trim());
-
-                if (StrUtil.isNotEmpty(upstream.getTactics())) {
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue(upstream.getTactics());
-                    ngxBlockServer.addEntry(ngxParam);
-                }
-
-                List<UpstreamServer> upstreamServers = upstreamService.getUpstreamServers(upstream.getId());
-                for (UpstreamServer upstreamServer : upstreamServers) {
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("server " + buildNodeStr(upstreamServer));
-                    ngxBlockServer.addEntry(ngxParam);
-                }
-
-                // 自定义参数
-                List<Param> paramList = paramService.getListByTypeId(upstream.getId(), "upstream");
-                for (Param param : paramList) {
-                    setSameParam(param, ngxBlockServer);
-                }
-
-                hasHttp = true;
-
-                if (decompose) {
-                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("include " + nginxPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
-                    ngxBlockHttp.addEntry(ngxParam);
-
-                } else {
-                    ngxBlockHttp.addEntry(ngxBlockServer);
-                }
-
-            }
-
-            // 添加server
-            List<Server> servers = serverService.getListByProxyType(new Integer[]{0});
-            for (Server server : servers) {
-                if (server.getEnable() == null || !server.getEnable()) {
-                    continue;
-                }
-
-                NgxBlock ngxBlockServer = bulidBlockServer(server);
-                hasHttp = true;
-
-                // 是否需要分解
-                if (decompose) {
-                    String name = "all";
-
-                    if (StrUtil.isNotEmpty(server.getServerName())) {
-                        name = server.getServerName();
-                    }
-
-                    addConfFile(confExt, name + ".conf", ngxBlockServer);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("include " + nginxPath.replace("nginx.conf", "conf.d/" + name + ".conf"));
-
-                    if (noContain(ngxBlockHttp, ngxParam)) {
-                        ngxBlockHttp.addEntry(ngxParam);
-                    }
-
-                } else {
-                    ngxBlockHttp.addEntry(ngxBlockServer);
-                }
-
-            }
-            if (hasHttp) {
-                ngxConfig.addEntry(ngxBlockHttp);
-            }
-
-            // TCP/UDP转发
-            // 创建stream
-            List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Stream.class);
-            boolean hasStream = false;
-            NgxBlock ngxBlockStream = new NgxBlock();
-            ngxBlockStream.addValue("stream");
-            for (Stream stream : streamList) {
-                ngxParam = new NgxParam();
-                ngxParam.addValue(stream.getName() + " " + stream.getValue());
-                ngxBlockStream.addEntry(ngxParam);
-
-                hasStream = true;
-            }
-
-            // 添加upstream
-            upstreams = upstreamService.getListByProxyType(1);
-            for (Upstream upstream : upstreams) {
-                NgxBlock ngxBlockServer = buildBlockUpstream(upstream);
-
-                if (decompose) {
-                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("include " + nginxPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
-                    ngxBlockStream.addEntry(ngxParam);
-                } else {
-                    ngxBlockStream.addEntry(ngxBlockServer);
-                }
-
-                hasStream = true;
-            }
-
-            // 添加server
-            servers = serverService.getListByProxyType(new Integer[]{1, 2});
-            for (Server server : servers) {
-                if (server.getEnable() == null || !server.getEnable()) {
-                    continue;
-                }
-
-                NgxBlock ngxBlockServer = bulidBlockServer(server);
-
-                if (decompose) {
-                    addConfFile(confExt, "stream." + server.getListen() + ".conf", ngxBlockServer);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("include " + nginxPath.replace("nginx.conf", "conf.d/stream." + server.getListen() + ".conf"));
-                    ngxBlockStream.addEntry(ngxParam);
-                } else {
-                    ngxBlockStream.addEntry(ngxBlockServer);
-                }
-
-                hasStream = true;
-            }
-
-            if (hasStream) {
-                ngxConfig.addEntry(ngxBlockStream);
-            }
-
-            String conf = new NgxDumper(ngxConfig).dump().replace("};", "  }");
-
+            String conf = new NgxDumper(ngxConfig).dump().replace(";", "");
+            System.out.println(conf);
             confExt.setConf(conf);
 
             return confExt;
