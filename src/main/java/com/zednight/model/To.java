@@ -5,14 +5,19 @@ import cn.craccd.sqlHelper.config.Table;
 
 @Table
 public class To extends BaseModel {
-    private Long siteId;
+    private String siteId;
     private String lbPolicy;
     private String lbTryDuration;
     private String location;
     private String proxyAddress;
+    private String toParamJson;
 
-    public Long getSiteId() {
-        return siteId;
+    public String getToParamJson() {
+        return toParamJson;
+    }
+
+    public void setToParamJson(String toParamJson) {
+        this.toParamJson = toParamJson;
     }
 
     public String getLocation() {
@@ -31,7 +36,11 @@ public class To extends BaseModel {
         this.proxyAddress = proxyAddress;
     }
 
-    public void setSiteId(Long siteId) {
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
         this.siteId = siteId;
     }
 

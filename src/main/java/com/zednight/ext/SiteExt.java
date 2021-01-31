@@ -33,7 +33,7 @@ public class SiteExt {
         return locationStr;
     }
 
-    public void setLocationStr(String locationStr) {
+    public void setToStr(String locationStr) {
         this.locationStr = locationStr;
     }
 

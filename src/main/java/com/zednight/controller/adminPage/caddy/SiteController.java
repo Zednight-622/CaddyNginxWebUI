@@ -11,6 +11,7 @@ import com.github.odiszapc.nginxparser.NgxConfig;
 import com.github.odiszapc.nginxparser.NgxDumper;
 import com.github.odiszapc.nginxparser.NgxParam;
 import com.zednight.ext.ServerExt;
+import com.zednight.ext.SiteExt;
 import com.zednight.model.*;
 import com.zednight.service.*;
 import com.zednight.utils.BaseController;
@@ -29,223 +30,178 @@ import java.util.List;
 @Controller
 @RequestMapping("/adminPage/site")
 public class SiteController extends BaseController {
-	@Autowired
-	ServerService serverService;
-	@Autowired
-	UpstreamService upstreamService;
-	@Autowired
-	ParamService paramService;
-	@Autowired
-	SettingService settingService;
-	@Autowired
-	ConfService confService;
+    @Autowired
+    private ServerService serverService;
+    @Autowired
+    private UpstreamService upstreamService;
+    @Autowired
+    private ParamService paramService;
+    @Autowired
+    private SettingService settingService;
+    @Autowired
+    private ConfService confService;
+    @Autowired
+    private SiteService siteService;
 
-	@RequestMapping("")
-	public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView, Page page, String sort, String direction, String keywords) {
-		page = serverService.search(page, sort, direction, keywords);
+    @RequestMapping("")
+    public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView, Page page, String sort, String direction, String keywords) {
+        Page pages = siteService.search(page, sort, direction, keywords);
+        modelAndView.addObject("page", pages);
+        modelAndView.setViewName("/adminPage/caddySite/index");
+        return modelAndView;
+    }
 
-		List<ServerExt> exts = new ArrayList<ServerExt>();
-		for (Server server : page.getRecords(Server.class)) {
-			ServerExt serverExt = new ServerExt();
-			if (server.getEnable() == null) {
-				server.setEnable(false);
-			}
 
-			serverExt.setServer(server);
-			if (server.getProxyType() == 0) {
-				serverExt.setLocationStr(buildLocationStr(server.getId()));
-			} else {
-				Upstream upstream = sqlHelper.findById(server.getProxyUpstreamId(), Upstream.class);
-				serverExt.setLocationStr(m.get("serverStr.server") + ": " + (upstream != null ? upstream.getName() : ""));
-			}
 
-			exts.add(serverExt);
-		}
-		page.setRecords(exts);
+    @RequestMapping("addOver")
+    @ResponseBody
+    public JsonResult addOver(String siteJson, String siteParamJson, String toJson) {
+        Site site = JSONUtil.toBean(siteJson, Site.class);
+        List<To> to = JSONUtil.toList(JSONUtil.parseArray(toJson), To.class);
+        try {
+            siteService.addOver(site, siteParamJson, to);
+        } catch (Exception e) {
+            return renderError(e.getMessage());
+        }
+        return renderSuccess();
+    }
 
-		modelAndView.addObject("page", page);
+    @RequestMapping("setEnable")
+    @ResponseBody
+    public JsonResult setEnable(Server server) {
+        sqlHelper.updateById(server);
+        return renderSuccess();
+    }
 
-		modelAndView.setViewName("/adminPage/caddySite/index");
-		return modelAndView;
-	}
+    @RequestMapping("detail")
+    @ResponseBody
+    public JsonResult detail(String id) {
+        Server server = sqlHelper.findById(id, Server.class);
 
-	private String buildLocationStr(String id) {
-		List<String> str = new ArrayList<String>();
-		List<Location> locations = serverService.getLocationByServerId(id);
-		for (Location location : locations) {
-			if (location.getType() == 0) {
-				str.add("<span class='path'>" + location.getPath() + "</span><span class='value'>" + location.getValue() + "</span>");
-			} else if (location.getType() == 1) {
-				str.add("<span class='path'>" + location.getPath() + "</span><span class='value'>" + location.getRootPath() + "</span>");
-			} else if (location.getType() == 2) {
-				Upstream upstream = sqlHelper.findById(location.getUpstreamId(), Upstream.class);
-				if (upstream != null) {
-					str.add("<span class='path'>" + location.getPath() + "</span><span class='value'>http://" + upstream.getName()
-							+ (location.getUpstreamPath() != null ? location.getUpstreamPath() : "") + "</span>");
-				}
-			} else if (location.getType() == 3) {
-				str.add("<span class='path'>" + location.getPath() + "</span>");
-			}
+        ServerExt serverExt = new ServerExt();
+        serverExt.setServer(server);
+        List<Location> list = serverService.getLocationByServerId(id);
+        for (Location location : list) {
+            String json = paramService.getJsonByTypeId(location.getId(), "location");
+            location.setLocationParamJson(json);
+        }
+        serverExt.setLocationList(list);
+        String json = paramService.getJsonByTypeId(server.getId(), "server");
+        serverExt.setParamJson(json);
 
-		}
-		return StrUtil.join("<br>", str);
-	}
+        return renderSuccess(serverExt);
+    }
 
-	@RequestMapping("addOver")
-	@ResponseBody
-	public JsonResult addOver(String serverJson, String serverParamJson, String locationJson) {
-		Server server = JSONUtil.toBean(serverJson, Server.class);
-		List<Location> locations = JSONUtil.toList(JSONUtil.parseArray(locationJson), Location.class);
+    @RequestMapping("del")
+    @ResponseBody
+    public JsonResult del(String id) {
+        serverService.deleteById(id);
 
-		if (server.getProxyType() == 0) {
-			try {
-				serverService.addOver(server, serverParamJson, locations);
-			} catch (Exception e) {
-				return renderError(e.getMessage());
-			}
-		} else {
-			serverService.addOverTcp(server, serverParamJson);
-		}
+        return renderSuccess();
+    }
 
-		return renderSuccess();
-	}
+    @RequestMapping("clone")
+    @ResponseBody
+    public JsonResult clone(String id) {
+        serverService.clone(id);
 
-	@RequestMapping("setEnable")
-	@ResponseBody
-	public JsonResult setEnable(Server server) {
-		sqlHelper.updateById(server);
-		return renderSuccess();
-	}
+        return renderSuccess();
+    }
 
-	@RequestMapping("detail")
-	@ResponseBody
-	public JsonResult detail(String id) {
-		Server server = sqlHelper.findById(id, Server.class);
+    @RequestMapping("importServer")
+    @ResponseBody
+    public JsonResult importServer(String nginxPath) {
 
-		ServerExt serverExt = new ServerExt();
-		serverExt.setServer(server);
-		List<Location> list = serverService.getLocationByServerId(id);
-		for (Location location : list) {
-			String json = paramService.getJsonByTypeId(location.getId(), "location");
-			location.setLocationParamJson(json != null ? json : null);
-		}
-		serverExt.setLocationList(list);
-		String json = paramService.getJsonByTypeId(server.getId(), "server");
-		serverExt.setParamJson(json != null ? json : null);
+        if (StrUtil.isEmpty(nginxPath) || !FileUtil.exist(nginxPath)) {
+            return renderError(m.get("serverStr.fileNotExist"));
+        }
 
-		return renderSuccess(serverExt);
-	}
+        try {
+            serverService.importServer(nginxPath);
+            return renderSuccess(m.get("serverStr.importSuccess"));
+        } catch (Exception e) {
+            e.printStackTrace();
 
-	@RequestMapping("del")
-	@ResponseBody
-	public JsonResult del(String id) {
-		serverService.deleteById(id);
+            return renderError(m.get("serverStr.importFail"));
+        }
+    }
 
-		return renderSuccess();
-	}
+    @RequestMapping("testPort")
+    @ResponseBody
+    public JsonResult testPort() {
+        List<Server> servers = sqlHelper.findAll(Server.class);
 
-	@RequestMapping("clone")
-	@ResponseBody
-	public JsonResult clone(String id) {
-		serverService.clone(id);
+        List<String> ips = new ArrayList<>();
+        for (Server server : servers) {
+            String ip = "";
+            String port = "";
+            if (server.getListen().contains(":")) {
+                ip = server.getListen().split(":")[0];
+                port = server.getListen().split(":")[1];
+            } else {
+                ip = "127.0.0.1";
+                port = server.getListen();
+            }
 
-		return renderSuccess();
-	}
+            if (TelnetUtils.isRunning(ip, Integer.parseInt(port)) && !ips.contains(server.getListen())) {
+                ips.add(server.getListen());
+            }
+        }
 
-	@RequestMapping("importServer")
-	@ResponseBody
-	public JsonResult importServer(String nginxPath) {
+        if (ips.size() == 0) {
+            return renderSuccess();
+        } else {
+            return renderError(m.get("serverStr.portUserdList") + ": " + StrUtil.join(" , ", ips));
+        }
 
-		if (StrUtil.isEmpty(nginxPath) || !FileUtil.exist(nginxPath)) {
-			return renderError(m.get("serverStr.fileNotExist"));
-		}
+    }
 
-		try {
-			serverService.importServer(nginxPath);
-			return renderSuccess(m.get("serverStr.importSuccess"));
-		} catch (Exception e) {
-			e.printStackTrace();
+    @RequestMapping("editDescr")
+    @ResponseBody
+    public JsonResult editDescr(String id, String descr) {
+        Server server = new Server();
+        server.setId(id);
+        server.setDescr(descr);
+        sqlHelper.updateById(server);
 
-			return renderError(m.get("serverStr.importFail"));
-		}
-	}
+        return renderSuccess();
+    }
 
-	@RequestMapping("testPort")
-	@ResponseBody
-	public JsonResult testPort() {
-		List<Server> servers = sqlHelper.findAll(Server.class);
+    @RequestMapping("preview")
+    @ResponseBody
+    public JsonResult preview(String id, String type) {
+        NgxBlock ngxBlock = null;
+        if (type.equals("server")) {
+            Server server = sqlHelper.findById(id, Server.class);
+            ngxBlock = confService.bulidBlockServer(server);
+        } else if (type.equals("upstream")) {
+            Upstream upstream = sqlHelper.findById(id, Upstream.class);
+            ngxBlock = confService.buildBlockUpstream(upstream);
+        } else if (type.equals("http")) {
+            List<Http> httpList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Http.class);
+            ngxBlock = new NgxBlock();
+            ngxBlock.addValue("http");
+            for (Http http : httpList) {
+                NgxParam ngxParam = new NgxParam();
+                ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
+                ngxBlock.addEntry(ngxParam);
+            }
+        } else if (type.equals("stream")) {
+            List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Stream.class);
+            ngxBlock = new NgxBlock();
+            ngxBlock.addValue("stream");
+            for (Stream stream : streamList) {
+                NgxParam ngxParam = new NgxParam();
+                ngxParam.addValue(stream.getName() + " " + stream.getValue());
+                ngxBlock.addEntry(ngxParam);
+            }
+        }
+        NgxConfig ngxConfig = new NgxConfig();
+        ngxConfig.addEntry(ngxBlock);
 
-		List<String> ips = new ArrayList<>();
-		for (Server server : servers) {
-			String ip = "";
-			String port = "";
-			if (server.getListen().contains(":")) {
-				ip = server.getListen().split(":")[0];
-				port = server.getListen().split(":")[1];
-			} else {
-				ip = "127.0.0.1";
-				port = server.getListen();
-			}
+        String conf = new NgxDumper(ngxConfig).dump().replace("};", "  }");
 
-			if (TelnetUtils.isRunning(ip, Integer.parseInt(port)) && !ips.contains(server.getListen())) {
-				ips.add(server.getListen());
-			}
-		}
-
-		if (ips.size() == 0) {
-			return renderSuccess();
-		} else {
-			return renderError(m.get("serverStr.portUserdList") + ": " + StrUtil.join(" , ", ips));
-		}
-
-	}
-
-	@RequestMapping("editDescr")
-	@ResponseBody
-	public JsonResult editDescr(String id, String descr) {
-		Server server = new Server();
-		server.setId(id);
-		server.setDescr(descr);
-		sqlHelper.updateById(server);
-
-		return renderSuccess();
-	}
-
-	@RequestMapping("preview")
-	@ResponseBody
-	public JsonResult preview(String id, String type) {
-		NgxBlock ngxBlock = null;
-		if (type.equals("server")) {
-			Server server = sqlHelper.findById(id, Server.class);
-			ngxBlock = confService.bulidBlockServer(server);
-		} else if (type.equals("upstream")) {
-			Upstream upstream = sqlHelper.findById(id, Upstream.class);
-			ngxBlock = confService.buildBlockUpstream(upstream);
-		} else if (type.equals("http")) {
-			List<Http> httpList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Http.class);
-			ngxBlock = new NgxBlock();
-			ngxBlock.addValue("http");
-			for (Http http : httpList) {
-				NgxParam ngxParam = new NgxParam();
-				ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
-				ngxBlock.addEntry(ngxParam);
-			}
-		} else if (type.equals("stream")) {
-			List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Stream.class);
-			ngxBlock = new NgxBlock();
-			ngxBlock.addValue("stream");
-			for (Stream stream : streamList) {
-				NgxParam ngxParam = new NgxParam();
-				ngxParam.addValue(stream.getName() + " " + stream.getValue());
-				ngxBlock.addEntry(ngxParam);
-			}
-		}
-		NgxConfig ngxConfig = new NgxConfig();
-		ngxConfig.addEntry(ngxBlock);
-
-		String conf = new NgxDumper(ngxConfig).dump().replace("};", "  }");
-
-		return renderSuccess(conf);
-	}
+        return renderSuccess(conf);
+    }
 
 }
