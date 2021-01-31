@@ -8,6 +8,8 @@ public class Param extends BaseModel {
 	String serverId;
 	String locationId;
 	String upstreamId;
+	String siteId;
+	String toSite;
 	
 	String templateId;
 	
@@ -16,8 +18,23 @@ public class Param extends BaseModel {
 
 	String templateValue;
 	String templateName;
-	
-	
+
+	public String getSiteId() {
+		return siteId;
+	}
+
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
+
+	public String getToSite() {
+		return toSite;
+	}
+
+	public void setToSite(String toSite) {
+		this.toSite = toSite;
+	}
+
 	public String getTemplateValue() {
 		return templateValue;
 	}

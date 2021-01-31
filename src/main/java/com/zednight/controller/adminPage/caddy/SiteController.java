@@ -65,22 +65,6 @@ public class SiteController extends BaseController {
 
 		modelAndView.addObject("page", page);
 
-		List<Upstream> upstreamList = upstreamService.getListByProxyType(0);
-		modelAndView.addObject("upstreamList", upstreamList);
-		modelAndView.addObject("upstreamSize", upstreamList.size());
-
-		List<Upstream> upstreamTcpList = upstreamService.getListByProxyType(1);
-		modelAndView.addObject("upstreamTcpList", upstreamTcpList);
-		modelAndView.addObject("upstreamTcpSize", upstreamTcpList.size());
-
-		modelAndView.addObject("certList", sqlHelper.findAll(Cert.class));
-		modelAndView.addObject("wwwList", sqlHelper.findAll(Www.class));
-		modelAndView.addObject("sort", sort);
-		modelAndView.addObject("direction", direction);
-
-		modelAndView.addObject("passwordList", sqlHelper.findAll(Password.class));
-
-		modelAndView.addObject("keywords", keywords);
 		modelAndView.setViewName("/adminPage/caddySite/index");
 		return modelAndView;
 	}
