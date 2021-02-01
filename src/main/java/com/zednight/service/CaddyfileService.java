@@ -68,154 +68,49 @@ public class CaddyfileService {
             }
             ngxConfig.addEntry(globalBlock);
 
-            // 获取http
-//            List<Http> httpList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Http.class);
-//            boolean hasHttp = false;
-//            NgxBlock ngxBlockHttp = new NgxBlock();
-//            ngxBlockHttp.addValue("http");
-//            for (Http http : httpList) {
-//                NgxParam ngxParam = new NgxParam();
-//                ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
-//                ngxBlockHttp.addEntry(ngxParam);
-//
-//                hasHttp = true;
-//            }
-//
-//            // 添加upstream
-//            NgxParam ngxParam;
-//            List<Upstream> upstreams = upstreamService.getListByProxyType(0);
-//
-//            for (Upstream upstream : upstreams) {
-//                NgxBlock ngxBlockServer = new NgxBlock();
-//                ngxBlockServer.addValue("upstream " + upstream.getName().trim());
-//
-//                if (StrUtil.isNotEmpty(upstream.getTactics())) {
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue(upstream.getTactics());
-//                    ngxBlockServer.addEntry(ngxParam);
-//                }
-//
-//                List<UpstreamServer> upstreamServers = upstreamService.getUpstreamServers(upstream.getId());
-//                for (UpstreamServer upstreamServer : upstreamServers) {
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue("server " + buildNodeStr(upstreamServer));
-//                    ngxBlockServer.addEntry(ngxParam);
-//                }
-//
-//                // 自定义参数
-//                List<Param> paramList = paramService.getListByTypeId(upstream.getId(), "upstream");
-//                for (Param param : paramList) {
-//                    setSameParam(param, ngxBlockServer);
-//                }
-//
-//                hasHttp = true;
-//
-//                if (decompose) {
-//                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
-//
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
-//                    ngxBlockHttp.addEntry(ngxParam);
-//
-//                } else {
-//                    ngxBlockHttp.addEntry(ngxBlockServer);
-//                }
-//
-//            }
-//
-//            // 添加server
-//            List<Server> servers = serverService.getListByProxyType(new Integer[]{0});
-//            for (Server server : servers) {
-//                if (server.getEnable() == null || !server.getEnable()) {
-//                    continue;
-//                }
-//
-//                NgxBlock ngxBlockServer = bulidBlockServer(server);
-//                hasHttp = true;
-//
-//                // 是否需要分解
-//                if (decompose) {
-//                    String name = "all";
-//
-//                    if (StrUtil.isNotEmpty(server.getServerName())) {
-//                        name = server.getServerName();
-//                    }
-//
-//                    addConfFile(confExt, name + ".conf", ngxBlockServer);
-//
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/" + name + ".conf"));
-//
-//                    if (noContain(ngxBlockHttp, ngxParam)) {
-//                        ngxBlockHttp.addEntry(ngxParam);
-//                    }
-//
-//                } else {
-//                    ngxBlockHttp.addEntry(ngxBlockServer);
-//                }
-//
-//            }
-//            if (hasHttp) {
-//                ngxConfig.addEntry(ngxBlockHttp);
-//            }
-//
-//            // TCP/UDP转发
-//            // 创建stream
-//            List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Sort.Direction.ASC), Stream.class);
-//            boolean hasStream = false;
-//            NgxBlock ngxBlockStream = new NgxBlock();
-//            ngxBlockStream.addValue("stream");
-//            for (Stream stream : streamList) {
-//                ngxParam = new NgxParam();
-//                ngxParam.addValue(stream.getName() + " " + stream.getValue());
-//                ngxBlockStream.addEntry(ngxParam);
-//
-//                hasStream = true;
-//            }
-//
-//            // 添加upstream
-//            upstreams = upstreamService.getListByProxyType(1);
-//            for (Upstream upstream : upstreams) {
-//                NgxBlock ngxBlockServer = buildBlockUpstream(upstream);
-//
-//                if (decompose) {
-//                    addConfFile(confExt, "upstreams." + upstream.getName() + ".conf", ngxBlockServer);
-//
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/upstreams." + upstream.getName() + ".conf"));
-//                    ngxBlockStream.addEntry(ngxParam);
-//                } else {
-//                    ngxBlockStream.addEntry(ngxBlockServer);
-//                }
-//
-//                hasStream = true;
-//            }
-//
-//            // 添加server
-//            servers = serverService.getListByProxyType(new Integer[]{1, 2});
-//            for (Server server : servers) {
-//                if (server.getEnable() == null || !server.getEnable()) {
-//                    continue;
-//                }
-//
-//                NgxBlock ngxBlockServer = bulidBlockServer(server);
-//
-//                if (decompose) {
-//                    addConfFile(confExt, "stream." + server.getListen() + ".conf", ngxBlockServer);
-//
-//                    ngxParam = new NgxParam();
-//                    ngxParam.addValue("include " + caddyPath.replace("nginx.conf", "conf.d/stream." + server.getListen() + ".conf"));
-//                    ngxBlockStream.addEntry(ngxParam);
-//                } else {
-//                    ngxBlockStream.addEntry(ngxBlockServer);
-//                }
-//
-//                hasStream = true;
-//            }
-//
-//            if (hasStream) {
-//                ngxConfig.addEntry(ngxBlockStream);
-//            }
+            // 获取Site参数
+            List<Site> siteList = sqlHelper.findAll(Site.class);
+            for (Site site : siteList) {
+                NgxBlock siteBlock = new NgxBlock();
+                siteBlock.addValue(site.getName());
+                if (site.getIsGzip().equals("1") || site.getIsZstd().equals("1")) {
+                    String encode = "encode ";
+                    if(site.getIsGzip().equals("1")) encode+="gzip ";
+                    if(site.getIsZstd().equals("1")) encode+="zstd ";
+                    NgxParam encodeParam = new NgxParam();
+                    encodeParam.addValue(encode);
+                    siteBlock.addEntry(encodeParam);
+                }
+                List<To> toList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), To.class);
+                for (To to : toList) {
+                    NgxBlock reverse = new NgxBlock();
+                    reverse.addValue("reverse_proxy " + to.getLocation() + " " + to.getProxyAddress());
+                    if (to.getLbPolicy() != null) {
+                        NgxParam lbProxyParam = new NgxParam();
+                        lbProxyParam.addValue("lb_policy " + to.getLbPolicy());
+                        reverse.addEntry(lbProxyParam);
+                    }
+                    if (to.getLbTryDuration() != null) {
+                        NgxParam lbTryDurationParam = new NgxParam();
+                        lbTryDurationParam.addValue("lb_try_duration " + to.getLbTryDuration());
+                        reverse.addEntry(lbTryDurationParam);
+                    }
+                    List<Param> paramList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("toId", to.getId()), Param.class);
+                    for (Param param : paramList) {
+                        NgxParam ngxParam = new NgxParam();
+                        ngxParam.addValue(param.getName() + " " + param.getValue());
+                        reverse.addEntry(ngxParam);
+                    }
+                    siteBlock.addEntry(reverse);
+                }
+                List<Param> paramList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), Param.class);
+                for (Param param : paramList) {
+                    NgxParam ngxParam = new NgxParam();
+                    ngxParam.addValue(param.getName() + " " + param.getValue());
+                    siteBlock.addEntry(ngxParam);
+                }
+                ngxConfig.addEntry(siteBlock);
+            }
 
             String conf = new NgxDumper(ngxConfig).dump().replace(";", "");
             System.out.println(conf);

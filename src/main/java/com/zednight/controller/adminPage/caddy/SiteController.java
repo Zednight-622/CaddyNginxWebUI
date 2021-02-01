@@ -56,6 +56,7 @@ public class SiteController extends BaseController {
     @RequestMapping("addOver")
     @ResponseBody
     public JsonResult addOver(String siteJson, String siteParamJson, String toJson) {
+        if(siteJson==null) return renderError("site为空");
         Site site = JSONUtil.toBean(siteJson, Site.class);
         List<To> to = JSONUtil.toList(JSONUtil.parseArray(toJson), To.class);
         try {
