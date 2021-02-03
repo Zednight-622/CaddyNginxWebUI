@@ -149,7 +149,7 @@ function add() {
 	$("#proxyUpstreamId option:first").prop("selected", true);
 	$("#passwordId option:first").prop("selected", true);
 	
-	$("#rewriteListen").val("80");
+	$("#rewriteListen").val("443");
 
 	$("#pem").val("");
 	$("#pemPath").html("");
@@ -178,119 +178,60 @@ function showWindow(title) {
 }
 
 function addOver() {
-	if ($("#listen").val().trim() == '') {
-		layer.msg(serverStr.noPort);
-		return;
-	}
-
-	if ($("#ssl").val() == 1 && $("#serverName").val() == '') {
-		layer.msg(serverStr.sslTips);
-		return;
-	}
-
-	var over = true;
-	$("input[name='path']").each(function() {
-		if ($(this).val().trim() == '') {
-			over = false;
-		}
-	})
-	$("input[name='value']").each(function() {
-		if (!$(this).is(":hidden") && $(this).val().trim() == '') {
-			over = false;
-		}
-	})
-	$("input[name='rootPath']").each(function() {
-		if (!$(this).is(":hidden") && $(this).val().trim() == '') {
-			over = false;
-		}
-	})
-	$("select[name='upstreamId']").each(function() {
-		if (!$(this).parent().is(":hidden") && ($(this).val() == '' || $(this).val() == null)) {
-			over = false;
-		}
-	})
-	$("select[name='proxyUpstreamId']").each(function() {
-		if ($("#proxyType").val() == 1 && ($(this).val() == '' || $(this).val() == null)) {
-			over = false;
-		}
-	})
-	if (!over) {
-		layer.msg(serverStr.noFill);
-		return;
-	}
+	// if ($("#port").val().trim() == '') {
+	// 	layer.msg(serverStr.noPort);
+	// 	return;
+	// }
+	//
+	// if ($("#ssl").val() == 1 && $("#serverName").val() == '') {
+	// 	layer.msg(serverStr.sslTips);
+	// 	return;
+	// }
+	//
+	// var over = true;
+	// $("input[name='path']").each(function() {
+	// 	if ($(this).val().trim() == '') {
+	// 		over = false;
+	// 	}
+	// })
+	// $("input[name='value']").each(function() {
+	// 	if (!$(this).is(":hidden") && $(this).val().trim() == '') {
+	// 		over = false;
+	// 	}
+	// })
+	// if (!over) {
+	// 	layer.msg(serverStr.noFill);
+	// 	return;
+	// }
 
 
-	var server = {};
-	server.id = $("#id").val();
-	server.proxyType = $("#proxyType").val();
-	server.proxyUpstreamId = $("#proxyUpstreamId").val();
-	server.listen = $("#listen").val();
-	if ($("#ip").val() != '') {
-		var ip =  $("#ip").val();
-		if(ip.indexOf(":") > -1){
-			ip = `[${ip}]`;
-		}
-		server.listen = ip + ":" + $("#listen").val();
-	}
-	
-	
-	
-	server.def = $("#def").prop("checked") ? "1" : "0";
-	server.serverName = $("#serverName").val();
-	server.ssl = $("#ssl").val();
-	server.pem = $("#pem").val();
-	server.key = $("#key").val();
-	server.rewrite = $("#rewrite").val();
-	if(server.rewrite == 1){
-		server.rewriteListen = $("#rewriteListen").val();
-		if ($("#rewriteIp").val() != '') {
-			var ip =  $("#rewriteIp").val();
-			if(ip.indexOf(":") > -1){
-				ip = `[${ip}]`;
-			}
-			server.rewriteListen = ip + ":" + $("#rewriteListen").val();
-		}
-	}
-	server.http2 = $("#http2").val();
-	//debugger
-	server.passwordId = $("#passwordId").val();
-	
-	var protocols = [];
-	$(".protocols").each(function() {
-		if($(this).prop("checked")){
-			protocols.push($(this).val());
-		}
-	});
-	server.protocols = protocols.join(" ");
-	
-	
-	var serverParamJson = $("#serverParamJson").val();
+	var site = {};
+	site.id = $("#id").val();
+	site.name = $("#ip").val();
+	site.port = $("#port").val();
+	site.isGzip = $("#gzip").val();
+	site.isZstd = $("#zstd").val();
+	site.isRedir = $("#redir").val();
 
-	var locations = [];
+
+	var siteParamJson = $("#siteParamJson").val();
+
+	var tos = [];
 
 	$(".itemList").children().each(function() {
-		var location = {};
-		location.path = $(this).find("input[name='path']").val();
-		location.type = $(this).find("select[name='type']").val();
-		location.value = $(this).find("input[name='value']").val();
-		location.upstreamId = $(this).find("select[name='upstreamId']").val();
-		location.upstreamPath = $(this).find("input[name='upstreamPath']").val();
-		location.rootPath = $(this).find("input[name='rootPath']").val();
-		location.rootPage = $(this).find("input[name='rootPage']").val();
-		location.rootType = $(this).find("select[name='rootType']").val();
-		location.locationParamJson = $(this).find("textarea[name='locationParamJson']").val();
-		location.header = $(this).find("input[name='header']").prop("checked") ? 1 : 0;
-
-		locations.push(location);
+		var to = {};
+		to.location = $(this).find("input[name='location']").val();
+		to.proxyAddress = $(this).find("input[name='proxyAddress']").val();
+		to.toParamJson = $(this).find("textarea[name='toParamJson']").val();
+		tos.push(to);
 	})
-
 	$.ajax({
 		type: 'POST',
-		url: ctx + '/adminPage/server/addOver',
+		url: ctx + '/adminPage/site/addOver',
 		data: {
-			serverJson: JSON.stringify(server),
-			serverParamJson: serverParamJson,
-			locationJson: JSON.stringify(locations),
+			siteJson: JSON.stringify(site),
+			siteParamJson: siteParamJson,
+			toJson: JSON.stringify(tos),
 		},
 		dataType: 'json',
 		success: function(data) {
@@ -311,7 +252,7 @@ function edit(id, clone) {
 
 	$.ajax({
 		type: 'GET',
-		url: ctx + '/adminPage/server/detail',
+		url: ctx + '/adminPage/site/detail',
 		dataType: 'json',
 		data: {
 			id: id
@@ -319,109 +260,48 @@ function edit(id, clone) {
 		success: function(data) {
 			if (data.success) {
 
-				var server = data.obj.server;
-				if (!clone) {
-					$("#id").val(server.id);
-				} else {
-					$("#id").val("");
+				var site = data.obj.site;
+				$("#ip").val(site.name)
+				$("#port").val(site.port)
+
+				$("#def").prop("checked", site.def == 1);
+				$("#serverName").val(site.serverName);
+				$("#siteParamJson").val(data.obj.paramJson);
+				if (site.isGzip != null) {
+					$("#gzip").val(site.isGzip);
+				}else{
+					$("#gzip option:first").prop("selected", true);
+				}
+				if (site.isZstd != null) {
+					$("#zstd").val(site.isZstd);
+				}else{
+					$("#zstd option:first").prop("selected", true);
+				}
+				if (site.isRedir != null) {
+					$("#redir").val(site.isRedir);
+				}else{
+					$("#redir option:first").prop("selected", true);
 				}
 
-				if (server.listen !=null && server.listen.indexOf(":") > -1) {
-					var listens = server.listen.split(":");
-					
-					$("#ip").val(server.listen.replace(":" + listens[listens.length - 1] , "").replace("[","").replace("]",""));
-					$("#listen").val(listens[listens.length - 1]);
-				} else {
-					$("#ip").val("");
-					$("#listen").val(server.listen);
-				}
-				
-				if (server.rewriteListen != null && server.rewriteListen.indexOf(":") > -1) {
-					var listens = server.rewriteListen.split(":");
-					
-					$("#rewriteIp").val(server.rewriteListen.replace(":" + listens[listens.length - 1] , "").replace("[","").replace("]",""));
-					$("#rewriteListen").val(listens[listens.length - 1]);
-				} else {
-					$("#rewriteIp").val("");
-					$("#rewriteListen").val(server.rewriteListen);
-				}
-
-				$("#def").prop("checked", server.def == 1);
-				$("#serverName").val(server.serverName);
-				$("#ssl").val(server.ssl);
-				$("#pem").val(server.pem);
-				$("#key").val(server.key);
-				$("#pemPath").html(server.pem);
-				$("#keyPath").html(server.key);
-				$("#proxyType").val(server.proxyType);
-				$("#proxyType").val(server.proxyType);
-				$("#proxyUpstreamId").val(server.proxyUpstreamId);
-				$("#serverParamJson").val(data.obj.paramJson);
-				$("#passwordId").val(server.passwordId);
-
-
-				if (server.rewrite != null) {
-					$("#rewrite").val(server.rewrite);
-				} else {
-					$("#rewrite option:first").prop("selected", true);
-				}
-
-				if (server.http2 != null) {
-					$("#http2").val(server.http2);
-				} else {
-					$("#http2 option:first").prop("selected", true);
-				}
-				
-				$(".protocols").prop("checked",false);
-				if(server.protocols != null){
-					var protocols = server.protocols.split(" ");
-					
-					if(protocols.indexOf("TLSv1") > -1){
-						$("#TLSv1").prop("checked",true);
-					}
-					if(protocols.indexOf("TLSv1.1") > -1){
-						$("#TLSv1_1").prop("checked",true);
-					}
-					if(protocols.indexOf("TLSv1.2") > -1){
-						$("#TLSv1_2").prop("checked",true);
-					}
-					if(protocols.indexOf("TLSv1.3") > -1){
-						$("#TLSv1_3").prop("checked",true);
-					}
-				}
 				form.render();
 
-
-				checkProxyType(server.proxyType);
-				checkSsl(server.ssl);
-				checkRewrite(server.rewrite);
 				
-				var list = data.obj.locationList;
+				var list = data.obj.toList;
 
-				var upstreamSelect = $("#upstreamSelect").html();
 				$("#itemList").html("");
 				for (let i = 0; i < list.length; i++) {
-					var location = list[i];
+					var to = list[i];
 					var uuid = guid();
-
-					location.locationParamJson = location.locationParamJson;
-					var html = buildHtml(uuid, location, upstreamSelect);
+					var html = buildHtml(uuid, to, upstreamSelect);
 
 					$("#itemList").append(html);
-
-					$("#" + uuid + " input[name='value']").val(location.value);
+					$("#" + uuid + " input[name='proxyAddress']").val(to.proxyAddress);
 					$("#" + uuid + " input[name='rootType']").val(location.rootType);
 					$("#" + uuid + " input[name='rootPath']").val(location.rootPath);
 					$("#" + uuid + " input[name='rootPage']").val(location.rootPage);
 					$("#" + uuid + " select[name='rootType']").val(location.rootType);
 					$("#" + uuid + " select[name='upstreamId']").val(location.upstreamId);
 					$("#" + uuid + " input[name='upstreamPath']").val(location.upstreamPath);
-
-					if (location.header == 1) {
-						$("#" + uuid + " input[name='header']").prop("checked", true);
-					} else {
-						$("#" + uuid + " input[name='header']").prop("checked", false);
-					}
 
 					checkType(location.type, uuid)
 				}
@@ -443,7 +323,7 @@ function del(id) {
 	if (confirm(commonStr.del)) {
 		$.ajax({
 			type: 'POST',
-			url: ctx + '/adminPage/server/del',
+			url: ctx + '/adminPage/site/del',
 			data: {
 				id: id
 			},
@@ -479,73 +359,29 @@ function addItem() {
 
 
 
-function buildHtml(uuid, location, upstreamSelect) {
-	if (location == null) {
-		location = {
-			path: "/",
+function buildHtml(uuid, to, upstreamSelect) {
+	if (to == null) {
+		to = {
+			location: "/",
 			type: "0",
-			locationParamJson: ""
+			toParamJson: ""
 		};
 	}
 
 
 	var str = `<tr id='${uuid}'>
 				<td>
-					<input type="text" name="path" class="layui-input short" value="${location.path}">
+					<input type="text" name="location" class="layui-input short" value="${to.location}">
 				</td>
-				<td>
-					<div class="layui-input-inline" style="width: 130px;">
-						<select name="type" lang='${uuid}' lay-filter="type">
-							<option ${location.type == '0' ? 'selected' : ''} value="0">${serverStr.serverType0}</option>
-							<option ${location.type == '1' ? 'selected' : ''} value="1">${serverStr.serverType1}</option>
-							<option ${location.type == '2' ? 'selected' : ''} value="2">${serverStr.serverType2}</option>
-							<option ${location.type == '3' ? 'selected' : ''} value="3">${serverStr.serverType3}</option>
-						</select>
-					</div>
-				</td>
-				
 				<td>
 					<span name="valueSpan">
 						<div class="layui-inline">
-							<input type="text"  style="width: 315px;" name="value" id="value_${uuid}" class="layui-input long" value=""  placeholder="${serverStr.example}：http://127.0.0.1:8080">
-						</div>
-					</span>
-					
-					<span name="rootPathSpan">
-						<div class="layui-inline" style="width: 150px;">
-							<select name="rootType" >
-								<option value="root">${serverStr.rootModel}</option>
-								<option value="alias">${serverStr.aliasModel}</option>
-							</select>
-						</div>
-						
-						<div class="layui-inline" style="width: 150px;">
-							<input type="text" name="rootPath" id="rootPath_${uuid}" class="layui-input" placeholder="${serverStr.example}：/root/www">
-						</div>
-							
-						<i class="layui-icon layui-icon-export" lang="value" onclick="selectWww('${uuid}')"></i> 
-							
-						<div class="layui-inline" style="width: 120px;">
-							<input type="text" name="rootPage" id="rootPage_${uuid}" class="layui-input" placeholder="${serverStr.defaultPage}">
-						</div>	
-					</span>
-					
-					<span name="upstreamSelectSpan">
-						${upstreamSelect}
-					</span>
-					
-					<span name="blankSpan">
-					
-					</span>
-					
-					<span  name="headerSpan">
-						<div class="layui-inline">
-							<input type="checkbox" name="header" title="${serverStr.headerAddHost}" lay-skin="primary" checked> 
+							<input type="text"  style="width: 315px;" name="proxyAddress" id="value_${uuid}" class="layui-input long" value=""  placeholder="${serverStr.example}：127.0.0.1:8080 多个代理目标用空格隔开">
 						</div>
 					</span>
 				</td> 
 				<td>
-					<textarea style="display: none;" id="locationParamJson_${uuid}" name="locationParamJson" >${location.locationParamJson}</textarea>
+					<textarea style="display: none;" id="locationParamJson_${uuid}" name="toParamJson" >${to.toParamJson}</textarea>
 					<button type="button" class="layui-btn layui-btn-sm" onclick="locationParam('${uuid}')">${serverStr.extParm}</button>
 					<button type="button" class="layui-btn layui-btn-sm layui-btn-danger" onclick="delTr('${uuid}')">${commonStr.del}</button>
 					
@@ -620,9 +456,9 @@ function selectKey() {
 }
 
 
-function serverParam() {
-	var json = $("#serverParamJson").val();
-	$("#targertId").val("serverParamJson");
+function siteParam() {
+	var json = $("#siteParamJson").val();
+	$("#targertId").val("siteParamJson");
 	var params = json != '' ? JSON.parse(json) : [];
 	fillTable(params);
 

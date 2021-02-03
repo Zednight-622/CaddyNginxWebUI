@@ -97,4 +97,9 @@ public class SiteService {
             }
         }
     }
+
+    public void deleteById(String id) {
+        sqlHelper.deleteById(id, Site.class);
+        sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("site", id), To.class);
+    }
 }

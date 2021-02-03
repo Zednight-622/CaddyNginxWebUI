@@ -126,7 +126,6 @@
 								<th>${siteStr.name}</th>
 								<th>${siteStr.port}</th>
 								<th>${siteStr.proxyAddress}</th>
-								<th>${siteStr.location}</th>
 								<th>${siteStr.isGzip}</th>
 								<th>${siteStr.isZstd}</th>
 								<th>${siteStr.redir}</th>
@@ -137,59 +136,33 @@
 							<#list page.records as ext>
 							<tr>
 								<td>
-									<#if ext.server.proxyType==0>http</#if>
-									<#if ext.server.proxyType==1>TCP</#if>
-									<#if ext.server.proxyType==2>UDP</#if>
+									${ext.site.getName()}
 								</td>
 								<td>
-									${ext.server.listen}
-									<#if ext.server.def==1>default</#if>
+									<span class="descr">${ext.site.getPort()}</span>
 								</td>
 								<td>
-									<#if ext.server.serverName==''>${serverStr.all}</#if>
-									<#if ext.server.serverName!=''>${ext.server.serverName}</#if>
+									${ext.locationStr}
 								</td>
 								<td>
-									<span class="descr">
-									<#if ext.server.ssl==0>${commonStr.no}</#if>
-									<#if ext.server.ssl==1>${commonStr.yes}</#if>
-									</span>
-								</td>
-								<td>
-									<#if ext.server.ssl==1> 
-										<span class="blk">${serverStr.httpToHttps}：</span> 
-										<span class="descr">
-										<#if ext.server.rewrite==0>${commonStr.no}</#if> 
-										<#if ext.server.rewrite==1>${commonStr.yes}</#if> 
-										</span>
-										<br>
-										<span class="blk">${serverStr.http2}：</span> 
-										<span class="descr">
-										<#if ext.server.http2==0>${commonStr.no}</#if> 
-										<#if ext.server.http2==1>${commonStr.yes}</#if> 
-										</span>
-									</#if>
-								</td>
-
-
-								<td>${ext.locationStr}</td>
-
-								<td>
-									<input type="checkbox" name="enable" lay-filter="enable" value="${ext.server.id}" lay-text="ON|OFF" lay-skin="switch"${(ext.server.enable)?string('checked','')}>
+									<#if ext.site.getIsGzip()==0>${commonStr.no}</#if>
+									<#if ext.site.getIsGzip()==1>${commonStr.yes}</#if>
 								</td>
 
 								<td>
-									${ext.server.descr}
-									<a href="javascript:editDescr('${ext.server.id}','${ext.server.descr}')" style="color: blue; text-decoration: underline;">${commonStr.edit}</a>
+									<#if ext.site.getIsZstd()==0>${commonStr.no}</#if>
+									<#if ext.site.getIsZstd()==1>${commonStr.yes}</#if>
+								</td>
+								<td>
+									<#if ext.site.getIsRedir()==0>${commonStr.no}</#if>
+									<#if ext.site.getIsRedir()==1>${ext.site.getRedirAddress()}</#if>
 								</td>
 
-
 								<td>
-									<button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="preview('${ext.server.id}','server')">${commonStr.preview}</button>
+									<button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="preview('${ext.site.id}','server')">${commonStr.preview}</button>
 									
-									<button type="button" class="layui-btn layui-btn-sm" onclick="edit('${ext.server.id}', false)">${commonStr.edit}</button>
-									<button type="button" class="layui-btn layui-btn-sm" onclick="clone('${ext.server.id}')">${commonStr.clone}</button>
-									<button type="button" class="layui-btn layui-btn-danger layui-btn-sm" onclick="del('${ext.server.id}')">${commonStr.del}</button>
+									<button type="button" class="layui-btn layui-btn-sm" onclick="edit('${ext.site.id}', false)">${commonStr.edit}</button>
+									<button type="button" class="layui-btn layui-btn-danger layui-btn-sm" onclick="del('${ext.site.id}')">${commonStr.del}</button>
 
 								</td>
 							</tr>
@@ -218,23 +191,15 @@
 								</label>
 								<div class="layui-input-inline">
 									<input type="text" name="ip" id="ip" class="layui-input" style="width: 125px; display: inline-block;" placeholder="${serverStr.ipDefault}">
-									<input type="text" name="listen" id="listen" style="width: 60px; display: inline-block;" class="layui-input" placeholder="${serverStr.port}">
-									<input type="checkbox" name="def" id="def" title="${serverStr.default}" lay-skin="primary">
+									<input type="text" name="port" id="port" style="width: 60px; display: inline-block;" class="layui-input" placeholder="${serverStr.port}">
 								</div>
 							</div>
 
 							<div class="proxyHttp">
 								<div class="layui-form-item">
-									<label class="layui-form-label">${serverStr.serverName}</label>
-									<div class="layui-input-inline">
-										<input type="text" name="serverName" id="serverName" class="layui-input" placeholder="${serverStr.example}: www.baidu.com">
-									</div>
-								</div>
-
-								<div class="layui-form-item">
 									<label class="layui-form-label">${siteStr.isZstd}</label>
 									<div class="layui-input-inline">
-										<select name="gzip" id="gzip" lay-filter="ssl">
+										<select name="gzip" id="gzip">
 											<option value="0">${commonStr.no}</option>
 											<option value="1">${commonStr.yes}</option>
 										</select>
@@ -243,7 +208,7 @@
 								<div class="layui-form-item">
 									<label class="layui-form-label">${siteStr.isGzip}</label>
 									<div class="layui-input-inline">
-										<select name="zstd" id="zstd" lay-filter="ssl">
+										<select name="zstd" id="zstd">
 											<option value="0">${commonStr.no}</option>
 											<option value="1">${commonStr.yes}</option>
 										</select>
@@ -252,7 +217,7 @@
 								<div class="layui-form-item">
 									<label class="layui-form-label">${siteStr.redir}</label>
 									<div class="layui-input-inline">
-										<select name="redir" id="redir" lay-filter="redir">
+										<select name="redir" id="redir">
 											<option value="0">${commonStr.no}</option>
 											<option value="1">${commonStr.yes}</option>
 										</select>
@@ -264,8 +229,8 @@
 				</div>
 
 				<div class="layui-form-item">
-					<button type="button" class="layui-btn layui-btn-sm" style="margin-left: 195px;" onclick="serverParam()">${serverStr.extParm}</button>
-					<textarea style="display: none;" id="serverParamJson" name="serverParamJson"></textarea>
+					<button type="button" class="layui-btn layui-btn-sm" style="margin-left: 195px;" onclick="siteParam()">${serverStr.extParm}</button>
+					<textarea style="display: none;" id="siteParamJson" name="siteParamJson"></textarea>
 				</div>
 
 				<div class="layui-form-item">
@@ -277,7 +242,6 @@
 						<thead>
 							<tr>
 								<th>${serverStr.listenPath}</th>
-								<th>${serverStr.proxyType}</th>
 								<th style="width: 550px;">${serverStr.proxyTarget}</th>
 								<th>${commonStr.operation}</th>
 							</tr>
@@ -326,23 +290,6 @@
 			</div>
 		</div>
 
-		<div id="upstreamSelect" style="display: none;">
-			<div class="layui-inline" style="width: 150px;">
-				<select name="upstreamId">
-
-					<#list upstreamList as upstream>
-					<option value="${upstream.id}">${upstream.name}</option>
-					</#list>
-
-					<#if upstreamSize==0>
-					<option value="">${serverStr.noUpstream}</option>
-					</#if>
-				</select>
-			</div>
-			<div class="layui-inline" style="width: 150px;">
-				<input type="text" name="upstreamPath" class="layui-input" placeholder="${serverStr.extPathTips}">
-			</div>
-		</div>
 
 		<div class="layui-form" id="descrDiv" style="padding: 15px; display: none">
 			<input type="hidden" id="serverId" name="serverId">

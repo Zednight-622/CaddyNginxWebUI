@@ -51,7 +51,14 @@ public class SiteController extends BaseController {
         return modelAndView;
     }
 
-
+    @RequestMapping("addOver/test")
+    @ResponseBody
+    public JsonResult addOverTest(String siteJson, String siteParamJson, String toJson) {
+        System.out.println(siteJson);
+        System.out.println(siteParamJson);
+        System.out.println(toJson);
+        return renderSuccess();
+    }
 
     @RequestMapping("addOver")
     @ResponseBody
@@ -77,26 +84,26 @@ public class SiteController extends BaseController {
     @RequestMapping("detail")
     @ResponseBody
     public JsonResult detail(String id) {
-        Server server = sqlHelper.findById(id, Server.class);
+        Site site = sqlHelper.findById(id, Site.class);
 
-        ServerExt serverExt = new ServerExt();
-        serverExt.setServer(server);
-        List<Location> list = serverService.getLocationByServerId(id);
-        for (Location location : list) {
-            String json = paramService.getJsonByTypeId(location.getId(), "location");
-            location.setLocationParamJson(json);
+        SiteExt siteExt = new SiteExt();
+        siteExt.setSite(site);
+        List<To> list = siteService.getToBySiteId(id);
+        for (To to : list) {
+            String json = paramService.getJsonByTypeId(to.getId(), "to");
+            to.setToParamJson(json);
         }
-        serverExt.setLocationList(list);
-        String json = paramService.getJsonByTypeId(server.getId(), "server");
-        serverExt.setParamJson(json);
+        siteExt.setToList(list);
+        String json = paramService.getJsonByTypeId(site.getId(), "site");
+        siteExt.setParamJson(json);
 
-        return renderSuccess(serverExt);
+        return renderSuccess(siteExt);
     }
 
     @RequestMapping("del")
     @ResponseBody
     public JsonResult del(String id) {
-        serverService.deleteById(id);
+        siteService.deleteById(id);
 
         return renderSuccess();
     }
