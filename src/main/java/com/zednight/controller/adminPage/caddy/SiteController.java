@@ -42,6 +42,8 @@ public class SiteController extends BaseController {
     private ConfService confService;
     @Autowired
     private SiteService siteService;
+    @Autowired
+    private CaddyfileService caddyfileService;
 
     @RequestMapping("")
     public ModelAndView index(HttpSession httpSession, ModelAndView modelAndView, Page page, String sort, String direction, String keywords) {
@@ -179,35 +181,14 @@ public class SiteController extends BaseController {
     @ResponseBody
     public JsonResult preview(String id, String type) {
         NgxBlock ngxBlock = null;
-        if (type.equals("server")) {
-            Server server = sqlHelper.findById(id, Server.class);
-            ngxBlock = confService.bulidBlockServer(server);
-        } else if (type.equals("upstream")) {
-            Upstream upstream = sqlHelper.findById(id, Upstream.class);
-            ngxBlock = confService.buildBlockUpstream(upstream);
-        } else if (type.equals("http")) {
-            List<Http> httpList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Http.class);
-            ngxBlock = new NgxBlock();
-            ngxBlock.addValue("http");
-            for (Http http : httpList) {
-                NgxParam ngxParam = new NgxParam();
-                ngxParam.addValue(http.getName().trim() + " " + http.getValue().trim());
-                ngxBlock.addEntry(ngxParam);
-            }
-        } else if (type.equals("stream")) {
-            List<Stream> streamList = sqlHelper.findAll(new Sort("seq", Direction.ASC), Stream.class);
-            ngxBlock = new NgxBlock();
-            ngxBlock.addValue("stream");
-            for (Stream stream : streamList) {
-                NgxParam ngxParam = new NgxParam();
-                ngxParam.addValue(stream.getName() + " " + stream.getValue());
-                ngxBlock.addEntry(ngxParam);
-            }
+        if (type.equals("site")) {
+            Site site = sqlHelper.findById(id, Site.class);
+            ngxBlock = caddyfileService.buildBlockSite(site);
         }
         NgxConfig ngxConfig = new NgxConfig();
         ngxConfig.addEntry(ngxBlock);
 
-        String conf = new NgxDumper(ngxConfig).dump().replace("};", "  }");
+        String conf = new NgxDumper(ngxConfig).dump().replace(";", "");
 
         return renderSuccess(conf);
     }

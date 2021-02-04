@@ -3,7 +3,7 @@ function preview(id,type){
 	
 	$.ajax({
 		type: 'POST',
-		url: ctx + '/adminPage/server/preview',
+		url: ctx + '/adminPage/site/preview',
 		data: {
 			id: id,
 			type : type
@@ -11,7 +11,6 @@ function preview(id,type){
 		dataType: 'json',
 		success: function(data) {
 			if (data.success) {
-				
 				$("#preview").val(data.obj);
 				layer.open({
 					type: 1,

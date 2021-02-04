@@ -113,7 +113,6 @@ public class CaddyfileService {
             }
 
             String conf = new NgxDumper(ngxConfig).dump().replace(";", "");
-            System.out.println(conf);
             confExt.setConf(conf);
 
             return confExt;
@@ -153,206 +152,48 @@ public class CaddyfileService {
         return ngxBlockServer;
     }
 
-    public NgxBlock bulidBlockServer(Server server) {
-        NgxParam ngxParam = null;
-
-        NgxBlock ngxBlockServer = new NgxBlock();
-        if (server.getProxyType() == 0) {
-            ngxBlockServer.addValue("server");
-
-            // 监听域名
-            if (StrUtil.isNotEmpty(server.getServerName())) {
-                ngxParam = new NgxParam();
-                ngxParam.addValue("server_name " + server.getServerName());
-                ngxBlockServer.addEntry(ngxParam);
+    public NgxBlock buildBlockSite(Site site) {
+        NgxBlock siteBlock = new NgxBlock();
+        siteBlock.addValue(site.getName());
+        if (site.getIsGzip().equals("1") || site.getIsZstd().equals("1")) {
+            String encode = "encode ";
+            if(site.getIsGzip().equals("1")) encode+="gzip ";
+            if(site.getIsZstd().equals("1")) encode+="zstd ";
+            NgxParam encodeParam = new NgxParam();
+            encodeParam.addValue(encode);
+            siteBlock.addEntry(encodeParam);
+        }
+        List<To> toList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), To.class);
+        for (To to : toList) {
+            NgxBlock reverse = new NgxBlock();
+            reverse.addValue("reverse_proxy " + to.getLocation() + " " + to.getProxyAddress());
+            if (to.getLbPolicy() != null) {
+                NgxParam lbProxyParam = new NgxParam();
+                lbProxyParam.addValue("lb_policy " + to.getLbPolicy());
+                reverse.addEntry(lbProxyParam);
             }
-
-            // 监听端口
-            ngxParam = new NgxParam();
-            String value = "listen " + server.getListen();
-            if (server.getDef() == 1) {
-                value += " default";
+            if (to.getLbTryDuration() != null) {
+                NgxParam lbTryDurationParam = new NgxParam();
+                lbTryDurationParam.addValue("lb_try_duration " + to.getLbTryDuration());
+                reverse.addEntry(lbTryDurationParam);
             }
-
-            if (server.getSsl() != null && server.getSsl() == 1) {
-                value += " ssl";
-                if (server.getHttp2() != null && server.getHttp2() == 1) {
-                    value += " http2";
-                }
-            }
-            ngxParam.addValue(value);
-            ngxBlockServer.addEntry(ngxParam);
-
-            // 密码配置
-            if (StrUtil.isNotEmpty(server.getPasswordId())) {
-                Password password = sqlHelper.findById(server.getPasswordId(), Password.class);
-
-                if (password != null) {
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("auth_basic \"" + password.getDescr() + "\"");
-                    ngxBlockServer.addEntry(ngxParam);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("auth_basic_user_file " + password.getPath());
-                    ngxBlockServer.addEntry(ngxParam);
-                }
-            }
-
-            // ssl配置
-            if (server.getSsl() == 1) {
-                if (StrUtil.isNotEmpty(server.getPem()) && StrUtil.isNotEmpty(server.getKey())) {
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("ssl_certificate " + server.getPem());
-                    ngxBlockServer.addEntry(ngxParam);
-
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("ssl_certificate_key " + server.getKey());
-                    ngxBlockServer.addEntry(ngxParam);
-
-                    if (StrUtil.isNotEmpty(server.getProtocols())) {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("ssl_protocols " + server.getProtocols());
-                        ngxBlockServer.addEntry(ngxParam);
-                    }
-
-                }
-
-                // https添加80端口重写
-                if (server.getRewrite() == 1) {
-                    if (StrUtil.isNotEmpty(server.getRewriteListen())) {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("listen " + server.getRewriteListen());
-                        ngxBlockServer.addEntry(ngxParam);
-                    }
-                    NgxBlock ngxBlock = new NgxBlock();
-                    ngxBlock.addValue("if ($scheme = http)");
-                    ngxParam = new NgxParam();
-                    ngxParam.addValue("return 301 https://$host$request_uri");
-                    ngxBlock.addEntry(ngxParam);
-
-                    ngxBlockServer.addEntry(ngxBlock);
-
-                }
-            }
-
-            // 自定义参数
-            List<Param> paramList = paramService.getListByTypeId(server.getId(), "server");
+            List<Param> paramList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("toId", to.getId()), Param.class);
             for (Param param : paramList) {
-                setSameParam(param, ngxBlockServer);
+                NgxParam ngxParam = new NgxParam();
+                ngxParam.addValue(param.getName() + " " + param.getValue());
+                reverse.addEntry(ngxParam);
             }
-
-            List<Location> locationList = serverService.getLocationByServerId(server.getId());
-
-            // location参数配置
-            for (Location location : locationList) {
-                NgxBlock ngxBlockLocation = new NgxBlock();
-                if (location.getType() == 0 || location.getType() == 2) { // location或负载均衡
-                    // 添加location
-                    ngxBlockLocation.addValue("location");
-                    ngxBlockLocation.addValue(location.getPath());
-
-                    if (location.getType() == 0) {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_pass " + location.getValue());
-                        ngxBlockLocation.addEntry(ngxParam);
-                    } else if (location.getType() == 2) {
-                        Upstream upstream = sqlHelper.findById(location.getUpstreamId(), Upstream.class);
-                        if (upstream != null) {
-                            ngxParam = new NgxParam();
-                            ngxParam.addValue("proxy_pass http://" + upstream.getName() + (location.getUpstreamPath() != null ? location.getUpstreamPath() : ""));
-                            ngxBlockLocation.addEntry(ngxParam);
-                        }
-                    }
-
-                    if (location.getHeader() == 1) { // 设置header
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_set_header Host $host:$server_port");
-                        ngxBlockLocation.addEntry(ngxParam);
-
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_set_header X-Real-IP $remote_addr");
-                        ngxBlockLocation.addEntry(ngxParam);
-
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for");
-                        ngxBlockLocation.addEntry(ngxParam);
-
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_set_header X-Forwarded-Proto $scheme");
-                        ngxBlockLocation.addEntry(ngxParam);
-                    }
-
-                    if (server.getSsl() == 1 && server.getRewrite() == 1) { // redirect http转https
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("proxy_redirect http:// https://");
-                        ngxBlockLocation.addEntry(ngxParam);
-                    }
-
-                } else if (location.getType() == 1) { // 静态html
-                    ngxBlockLocation.addValue("location");
-                    ngxBlockLocation.addValue(location.getPath());
-
-                    if (location.getRootType() != null && location.getRootType().equals("alias")) {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("alias " + location.getRootPath());
-                        ngxBlockLocation.addEntry(ngxParam);
-                    } else {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("root " + location.getRootPath());
-                        ngxBlockLocation.addEntry(ngxParam);
-                    }
-
-                    if (StrUtil.isNotEmpty(location.getRootPage())) {
-                        ngxParam = new NgxParam();
-                        ngxParam.addValue("index " + location.getRootPage());
-                        ngxBlockLocation.addEntry(ngxParam);
-                    }
-
-                } else if (location.getType() == 3) { // 空白location
-
-                    ngxBlockLocation.addValue("location");
-                    ngxBlockLocation.addValue(location.getPath());
-
-                }
-
-                // 自定义参数
-                paramList = paramService.getListByTypeId(location.getId(), "location");
-                for (Param param : paramList) {
-                    setSameParam(param, ngxBlockLocation);
-                }
-
-                ngxBlockServer.addEntry(ngxBlockLocation);
-
-            }
-
-        } else {
-            ngxBlockServer.addValue("server");
-
-            // 监听端口
-            ngxParam = new NgxParam();
-            String value = "listen " + server.getListen();
-            if (server.getProxyType() == 2) {
-                value += " udp reuseport";
-            }
-            ngxParam.addValue(value);
-            ngxBlockServer.addEntry(ngxParam);
-
-            // 指向负载均衡
-            Upstream upstream = sqlHelper.findById(server.getProxyUpstreamId(), Upstream.class);
-            if (upstream != null) {
-                ngxParam = new NgxParam();
-                ngxParam.addValue("proxy_pass " + upstream.getName());
-                ngxBlockServer.addEntry(ngxParam);
-            }
-
-            // 自定义参数
-            List<Param> paramList = paramService.getListByTypeId(server.getId(), "server");
-            for (Param param : paramList) {
-                setSameParam(param, ngxBlockServer);
-            }
+            siteBlock.addEntry(reverse);
+        }
+        List<Param> paramList = sqlHelper.findListByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), Param.class);
+        for (Param param : paramList) {
+            NgxParam ngxParam = new NgxParam();
+            ngxParam.addValue(param.getName() + " " + param.getValue());
+            siteBlock.addEntry(ngxParam);
         }
 
-        return ngxBlockServer;
+
+        return siteBlock;
     }
 
     /**

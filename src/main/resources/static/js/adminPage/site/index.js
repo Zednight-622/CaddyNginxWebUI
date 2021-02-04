@@ -263,9 +263,6 @@ function edit(id, clone) {
 				var site = data.obj.site;
 				$("#ip").val(site.name)
 				$("#port").val(site.port)
-
-				$("#def").prop("checked", site.def == 1);
-				$("#serverName").val(site.serverName);
 				$("#siteParamJson").val(data.obj.paramJson);
 				if (site.isGzip != null) {
 					$("#gzip").val(site.isGzip);
@@ -292,16 +289,10 @@ function edit(id, clone) {
 				for (let i = 0; i < list.length; i++) {
 					var to = list[i];
 					var uuid = guid();
-					var html = buildHtml(uuid, to, upstreamSelect);
+					var html = buildHtml(uuid, to, null);
 
 					$("#itemList").append(html);
 					$("#" + uuid + " input[name='proxyAddress']").val(to.proxyAddress);
-					$("#" + uuid + " input[name='rootType']").val(location.rootType);
-					$("#" + uuid + " input[name='rootPath']").val(location.rootPath);
-					$("#" + uuid + " input[name='rootPage']").val(location.rootPage);
-					$("#" + uuid + " select[name='rootType']").val(location.rootType);
-					$("#" + uuid + " select[name='upstreamId']").val(location.upstreamId);
-					$("#" + uuid + " input[name='upstreamPath']").val(location.upstreamPath);
 
 					checkType(location.type, uuid)
 				}
@@ -381,7 +372,7 @@ function buildHtml(uuid, to, upstreamSelect) {
 					</span>
 				</td> 
 				<td>
-					<textarea style="display: none;" id="locationParamJson_${uuid}" name="toParamJson" >${to.toParamJson}</textarea>
+					<textarea style="display: none;" id="toParamJson_${uuid}" name="toParamJson" >${to.toParamJson}</textarea>
 					<button type="button" class="layui-btn layui-btn-sm" onclick="locationParam('${uuid}')">${serverStr.extParm}</button>
 					<button type="button" class="layui-btn layui-btn-sm layui-btn-danger" onclick="delTr('${uuid}')">${commonStr.del}</button>
 					
@@ -465,8 +456,8 @@ function siteParam() {
 }
 
 function locationParam(uuid) {
-	var json = $("#locationParamJson_" + uuid).val();
-	$("#targertId").val("locationParamJson_" + uuid);
+	var json = $("#toParamJson_" + uuid).val();
+	$("#targertId").val("toParamJson_" + uuid);
 	var params = json != '' ? JSON.parse(json) : [];
 	fillTable(params);
 }
