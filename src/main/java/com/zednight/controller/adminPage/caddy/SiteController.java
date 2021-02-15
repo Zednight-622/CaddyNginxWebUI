@@ -53,15 +53,6 @@ public class SiteController extends BaseController {
         return modelAndView;
     }
 
-    @RequestMapping("addOver/test")
-    @ResponseBody
-    public JsonResult addOverTest(String siteJson, String siteParamJson, String toJson) {
-        System.out.println(siteJson);
-        System.out.println(siteParamJson);
-        System.out.println(toJson);
-        return renderSuccess();
-    }
-
     @RequestMapping("addOver")
     @ResponseBody
     public JsonResult addOver(String siteJson, String siteParamJson, String toJson) {

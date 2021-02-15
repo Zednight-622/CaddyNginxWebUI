@@ -73,6 +73,13 @@ public class CaddyfileService {
             for (Site site : siteList) {
                 NgxBlock siteBlock = new NgxBlock();
                 siteBlock.addValue(site.getName());
+                if(site.getIsRedir().equals("1")){
+                    NgxParam redir = new NgxParam();
+                    redir.addValue("redir " + site.getRedirAddress());
+                    siteBlock.addEntry(redir);
+                    ngxConfig.addEntry(siteBlock);
+                    continue;
+                }
                 if (site.getIsGzip().equals("1") || site.getIsZstd().equals("1")) {
                     String encode = "encode ";
                     if(site.getIsGzip().equals("1")) encode+="gzip ";
@@ -155,6 +162,12 @@ public class CaddyfileService {
     public NgxBlock buildBlockSite(Site site) {
         NgxBlock siteBlock = new NgxBlock();
         siteBlock.addValue(site.getName());
+        if(site.getIsRedir().equals("1")){
+            NgxParam redir = new NgxParam();
+            redir.addValue("redir " + site.getRedirAddress());
+            siteBlock.addEntry(redir);
+            return siteBlock;
+        }
         if (site.getIsGzip().equals("1") || site.getIsZstd().equals("1")) {
             String encode = "encode ";
             if(site.getIsGzip().equals("1")) encode+="gzip ";

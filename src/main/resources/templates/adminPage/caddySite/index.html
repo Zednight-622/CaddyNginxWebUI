@@ -217,10 +217,16 @@
 								<div class="layui-form-item">
 									<label class="layui-form-label">${siteStr.redir}</label>
 									<div class="layui-input-inline">
-										<select name="redir" id="redir">
+										<select name="redir" id="redir" lay-filter="redir">
 											<option value="0">${commonStr.no}</option>
 											<option value="1">${commonStr.yes}</option>
 										</select>
+									</div>
+								</div>
+								<div class="layui-form-item" id="redirDiv" hidden>
+									<label class="layui-form-label">${siteStr.redirAddress}</label>
+									<div class="layui-input-inline">
+										<input type="text" name="redirAddress" id="redirAddress" class="layui-input" style="width: 250px; display: inline-block;" placeholder="">
 									</div>
 								</div>
 							</div>
@@ -234,10 +240,10 @@
 				</div>
 
 				<div class="layui-form-item">
-					<button type="button" class="layui-btn layui-btn-sm layui-btn-normal proxyHttp" onclick="addItem()">${serverStr.addLocation}</button>
+					<button id="addParamBtn" type="button" class="layui-btn layui-btn-sm layui-btn-normal proxyHttp" onclick="addItem()">${serverStr.addLocation}</button>
 				</div>
 
-				<div class="layui-form-item proxyHttp">
+				<div class="layui-form-item proxyHttp" id="addToDiv">
 					<table class="layui-table">
 						<thead>
 							<tr>

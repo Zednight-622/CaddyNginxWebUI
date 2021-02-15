@@ -18,18 +18,9 @@ $(function() {
 		});
 	});
 
-
-	form.on('select(type)', function(data) {
-		checkType(data.value, $(data.elem).attr("lang"));
-	});
-	form.on('select(ssl)', function(data) {
-		checkSsl(data.value);
-	});
-	form.on('select(proxyType)', function(data) {
-		checkProxyType(data.value);
-	});
-	form.on('select(rewrite)', function(data) {
-		checkRewrite(data.value);
+	form.on('select(redir)', function(data) {
+		console.log(data)
+		checkRedir(data.value);
 	});
 	
 	layui.use('upload', function() {
@@ -69,6 +60,18 @@ $(function() {
 	});
 })
 
+function checkRedir(value) {
+	if(value == null || value === "" || value === "0"){
+		$("#redirDiv").hide();
+		$("#addToDiv").show();
+		$("#addParamBtn").show();
+	}else {
+		$("#redirDiv").show();
+		$("#addToDiv").hide();
+		$("#addParamBtn").hide();
+	}
+}
+
 function checkType(type, id) {
 	if (type == 0) {
 		$("#" + id + " span[name='valueSpan']").show();
@@ -100,37 +103,7 @@ function checkType(type, id) {
 	}
 }
 
-function checkSsl(value) {
-	if (value == 0) {
-		$(".pemDiv").hide();
-	}
-	if (value == 1) {
-		$(".pemDiv").show();
-	}
-}
 
-function checkProxyType(value) {
-	if (value == 0) {
-		$(".proxyHttp").show();
-		$(".proxyTcp").hide();
-
-	}
-	if (value == 1 || value == 2) {
-		$(".proxyHttp").hide();
-		$(".proxyTcp").show();
-	}
-
-}
-
-function checkRewrite(value){
-	if (value == null || value == '' || value == 0) {
-		$("#rewriteListenDiv").hide();
-
-	}
-	if (value == 1) {
-		$("#rewriteListenDiv").show();
-	}
-}
 
 function search() {
 	$("#searchForm").submit();
@@ -159,10 +132,7 @@ function add() {
 	$("#paramJson").val("");
 	
 	$(".protocols").prop("checked",true);
-	
-	checkProxyType(0);
-	checkSsl(0);
-	checkRewrite(1);
+
 
 	form.render();
 	showWindow(serverStr.add);
@@ -178,33 +148,10 @@ function showWindow(title) {
 }
 
 function addOver() {
-	// if ($("#port").val().trim() == '') {
-	// 	layer.msg(serverStr.noPort);
-	// 	return;
-	// }
-	//
-	// if ($("#ssl").val() == 1 && $("#serverName").val() == '') {
-	// 	layer.msg(serverStr.sslTips);
-	// 	return;
-	// }
-	//
-	// var over = true;
-	// $("input[name='path']").each(function() {
-	// 	if ($(this).val().trim() == '') {
-	// 		over = false;
-	// 	}
-	// })
-	// $("input[name='value']").each(function() {
-	// 	if (!$(this).is(":hidden") && $(this).val().trim() == '') {
-	// 		over = false;
-	// 	}
-	// })
-	// if (!over) {
-	// 	layer.msg(serverStr.noFill);
-	// 	return;
-	// }
-
-
+	if ($("#port").val().trim() == '') {
+		layer.msg(serverStr.noPort);
+		return;
+	}
 	var site = {};
 	site.id = $("#id").val();
 	site.name = $("#ip").val();
@@ -212,19 +159,19 @@ function addOver() {
 	site.isGzip = $("#gzip").val();
 	site.isZstd = $("#zstd").val();
 	site.isRedir = $("#redir").val();
-
+	site.redirAddress = $("#redirAddress").val();
 
 	var siteParamJson = $("#siteParamJson").val();
-
 	var tos = [];
-
-	$(".itemList").children().each(function() {
-		var to = {};
-		to.location = $(this).find("input[name='location']").val();
-		to.proxyAddress = $(this).find("input[name='proxyAddress']").val();
-		to.toParamJson = $(this).find("textarea[name='toParamJson']").val();
-		tos.push(to);
-	})
+	if (site.isRedir === "0"){
+		$(".itemList").children().each(function() {
+			var to = {};
+			to.location = $(this).find("input[name='location']").val();
+			to.proxyAddress = $(this).find("input[name='proxyAddress']").val();
+			to.toParamJson = $(this).find("textarea[name='toParamJson']").val();
+			tos.push(to);
+		})
+	}
 	$.ajax({
 		type: 'POST',
 		url: ctx + '/adminPage/site/addOver',
@@ -276,6 +223,8 @@ function edit(id, clone) {
 				}
 				if (site.isRedir != null) {
 					$("#redir").val(site.isRedir);
+					$("#redirAddress").val(site.redirAddress);
+					checkRedir(site.isRedir);
 				}else{
 					$("#redir option:first").prop("selected", true);
 				}
