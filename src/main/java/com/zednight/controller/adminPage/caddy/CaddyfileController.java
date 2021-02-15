@@ -16,10 +16,7 @@ import com.zednight.controller.adminPage.MainController;
 import com.zednight.ext.ConfExt;
 import com.zednight.ext.ConfFile;
 import com.zednight.service.*;
-import com.zednight.utils.BaseController;
-import com.zednight.utils.JsonResult;
-import com.zednight.utils.NginxUtils;
-import com.zednight.utils.SystemTool;
+import com.zednight.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -72,13 +69,13 @@ public class CaddyfileController extends BaseController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "nginxStatus")
+    @RequestMapping(value = "caddyStatus")
     @ResponseBody
-    public JsonResult nginxStatus() {
-        if (NginxUtils.isRun()) {
-            return renderSuccess(m.get("confStr.nginxStatus") + "：<span class='green'>" + m.get("confStr.running") + "</span>");
+    public JsonResult caddyStatus() {
+        if (CaddyUtils.isRun()) {
+            return renderSuccess(m.get("confStr.caddyStatus") + "：<span class='green'>" + m.get("confStr.running") + "</span>");
         } else {
-            return renderSuccess(m.get("confStr.nginxStatus") + "：<span class='red'>" + m.get("confStr.stopped") + "</span>");
+            return renderSuccess(m.get("confStr.caddyStatus") + "：<span class='red'>" + m.get("confStr.stopped") + "</span>");
         }
 
     }
@@ -93,9 +90,9 @@ public class CaddyfileController extends BaseController {
 
         JSONObject jsonObject = JSONUtil.parseObj(json);
 
-        String nginxPath = jsonObject.getStr("nginxPath");
-        String nginxContent = Base64.decodeStr(jsonObject.getStr("nginxContent"), CharsetUtil.CHARSET_UTF_8);
-        nginxContent = URLDecoder.decode(nginxContent, CharsetUtil.CHARSET_UTF_8).replace("<wave>", "~");
+        String caddyPath = jsonObject.getStr("caddyPath");
+        String caddyContent = Base64.decodeStr(jsonObject.getStr("caddyContent"), CharsetUtil.CHARSET_UTF_8);
+        caddyContent = URLDecoder.decode(caddyContent, CharsetUtil.CHARSET_UTF_8).replace("<wave>", "~");
 
         List<String> subContent = jsonObject.getJSONArray("subContent").toList(String.class);
         for (int i = 0; i < subContent.size(); i++) {
@@ -105,21 +102,21 @@ public class CaddyfileController extends BaseController {
         }
         List<String> subName = jsonObject.getJSONArray("subName").toList(String.class);
 
-        if (nginxPath == null) {
-            nginxPath = settingService.get("nginxPath");
+        if (caddyPath == null) {
+            caddyPath = settingService.get("caddyPath");
         }
 
-        if (FileUtil.isDirectory(nginxPath)) {
+        if (FileUtil.isDirectory(caddyPath)) {
             // 是文件夹, 提示
             return renderError(m.get("confStr.error2"));
         }
 
-//		if (!FileUtil.exist(nginxPath)) {
+//		if (!FileUtil.exist(caddyPath)) {
 //			return renderError(m.get("confStr.error1"));
 //		}
 
         try {
-//            caddyService.replace(nginxPath, nginxContent, subContent, subName);
+//            caddyService.replace(caddyPath, caddyContent, subContent, subName);
             return renderSuccess(m.get("confStr.replaceSuccess"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -136,7 +133,7 @@ public class CaddyfileController extends BaseController {
         URLEncoder urlEncoder = new URLEncoder();
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.set("nginxContent", Base64.encode(urlEncoder.encode(confExt.getConf(), CharsetUtil.CHARSET_UTF_8)));
+        jsonObject.set("caddyContent", Base64.encode(urlEncoder.encode(confExt.getConf(), CharsetUtil.CHARSET_UTF_8)));
         jsonObject.set("subContent", new JSONArray());
         jsonObject.set("subName", new JSONArray());
         for (ConfFile confFile : confExt.getFileList()) {
@@ -162,7 +159,7 @@ public class CaddyfileController extends BaseController {
         String cmd = null;
 
         FileUtil.del(InitConfig.home + "temp");
-        String fileTemp = InitConfig.home + "temp/nginx.conf";
+        String fileTemp = InitConfig.home + "temp/caddy.conf";
 
         try {
             ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), true);
@@ -175,7 +172,7 @@ public class CaddyfileController extends BaseController {
                 String subName = confExt.getFileList().get(i).getName();
                 String subContent = confExt.getFileList().get(i).getConf();
 
-                String tagert = fileTemp.replace("nginx.conf", "conf.d/" + subName).replace(" ", "_");
+                String tagert = fileTemp.replace("caddy.conf", "conf.d/" + subName).replace(" ", "_");
                 FileUtil.writeString(subContent, tagert, StandardCharsets.UTF_8); // 清空
             }
 
@@ -218,21 +215,21 @@ public class CaddyfileController extends BaseController {
 
     @RequestMapping(value = "reload")
     @ResponseBody
-    public synchronized JsonResult reload(String nginxPath, String nginxExe, String nginxDir) {
-        if (nginxPath == null) {
-            nginxPath = settingService.get("nginxPath");
+    public synchronized JsonResult reload(String caddyPath, String caddyExe, String caddyDir) {
+        if (caddyPath == null) {
+            caddyPath = settingService.get("caddyPath");
         }
-        if (nginxExe == null) {
-            nginxExe = settingService.get("nginxExe");
+        if (caddyExe == null) {
+            caddyExe = settingService.get("caddyExe");
         }
-        if (nginxDir == null) {
-            nginxDir = settingService.get("nginxDir");
+        if (caddyDir == null) {
+            caddyDir = settingService.get("caddyDir");
         }
 
         try {
-            String cmd = nginxExe + " -s reload -c " + nginxPath;
-            if (StrUtil.isNotEmpty(nginxDir)) {
-                cmd += " -p " + nginxDir;
+            String cmd = caddyExe + " -s reload -c " + caddyPath;
+            if (StrUtil.isNotEmpty(caddyDir)) {
+                cmd += " -p " + caddyDir;
             }
             String rs = RuntimeUtil.execForStr(cmd);
 
@@ -240,7 +237,7 @@ public class CaddyfileController extends BaseController {
             if (StrUtil.isEmpty(rs) || rs.contains("signal process started")) {
                 return renderSuccess(cmd + "<br>" + m.get("confStr.reloadSuccess") + "<br>" + rs.replace("\n", "<br>"));
             } else {
-                if (rs.contains("The system cannot find the file specified") || rs.contains("nginx.pid") || rs.contains("PID")) {
+                if (rs.contains("The system cannot find the file specified") || rs.contains("caddy.pid") || rs.contains("PID")) {
                     rs = rs + m.get("confStr.mayNotRun");
                 }
 
@@ -254,26 +251,26 @@ public class CaddyfileController extends BaseController {
 
     @RequestMapping(value = "start")
     @ResponseBody
-    public JsonResult start(String nginxPath, String nginxExe, String nginxDir) {
-        if (nginxPath == null) {
-            nginxPath = settingService.get("nginxPath");
+    public JsonResult start(String caddyPath, String caddyExe, String caddyDir) {
+        if (caddyPath == null) {
+            caddyPath = settingService.get("caddyPath");
         }
-        if (nginxExe == null) {
-            nginxExe = settingService.get("nginxExe");
+        if (caddyExe == null) {
+            caddyExe = settingService.get("caddyExe");
         }
-        if (nginxDir == null) {
-            nginxDir = settingService.get("nginxDir");
+        if (caddyDir == null) {
+            caddyDir = settingService.get("caddyDir");
         }
         try {
             String rs = "";
             String cmd;
             if (SystemTool.isWindows()) {
-                cmd = "cmd /c start nginx.exe" + " -c " + nginxPath + " -p " + nginxDir;
-                RuntimeUtil.exec(new String[]{}, new File(nginxDir), cmd);
+                cmd = "cmd /c start caddy.exe" + " -c " + caddyPath + " -p " + caddyDir;
+                RuntimeUtil.exec(new String[]{}, new File(caddyDir), cmd);
             } else {
-                cmd = nginxExe + " -c " + nginxPath;
-                if (StrUtil.isNotEmpty(nginxDir)) {
-                    cmd += " -p " + nginxDir;
+                cmd = caddyExe + " -c " + caddyPath;
+                if (StrUtil.isNotEmpty(caddyDir)) {
+                    cmd += " -p " + caddyDir;
                 }
                 rs = RuntimeUtil.execForStr(cmd);
             }
@@ -292,19 +289,19 @@ public class CaddyfileController extends BaseController {
 
     @RequestMapping(value = "stop")
     @ResponseBody
-    public JsonResult stop(String nginxExe, String nginxDir) {
-        if (nginxExe == null) {
-            nginxExe = settingService.get("nginxExe");
+    public JsonResult stop(String caddyExe, String caddyDir) {
+        if (caddyExe == null) {
+            caddyExe = settingService.get("caddyExe");
         }
-        if (nginxDir == null) {
-            nginxDir = settingService.get("nginxDir");
+        if (caddyDir == null) {
+            caddyDir = settingService.get("caddyDir");
         }
         try {
             String cmd;
             if (SystemTool.isWindows()) {
-                cmd = "taskkill /im /f nginx.exe ";
+                cmd = "taskkill /im /f caddy.exe ";
             } else {
-                cmd = "pkill nginx";
+                cmd = "pkill caddy";
             }
             String rs = RuntimeUtil.execForStr(cmd);
 
@@ -381,7 +378,7 @@ public class CaddyfileController extends BaseController {
             for (ConfFile confFile : confExt.getFileList()) {
                 confFile.setConf("");
 
-                String filePath = caddyPath.replace("nginx.conf", "conf.d/" + confFile.getName());
+                String filePath = caddyPath.replace("caddy.conf", "conf.d/" + confFile.getName());
                 if (FileUtil.exist(filePath)) {
                     confFile.setConf(FileUtil.readString(filePath, StandardCharsets.UTF_8));
                 }

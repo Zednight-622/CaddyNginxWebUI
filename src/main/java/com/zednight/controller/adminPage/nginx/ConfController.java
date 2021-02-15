@@ -83,7 +83,6 @@ public class ConfController extends BaseController {
         } else {
             return renderSuccess(m.get("confStr.nginxStatus") + "：<span class='red'>" + m.get("confStr.stopped") + "</span>");
         }
-
     }
 
     @RequestMapping(value = "replace")

@@ -25,18 +25,18 @@ $(function() {
         });
     });
 
-    nginxStatus();
+    caddyStatus();
 })
 
-function nginxStatus() {
+function caddyStatus() {
 
     $.ajax({
         type : 'POST',
-        url : ctx + '/adminPage/conf/nginxStatus',
+        url : ctx + '/adminPage/caddyfile/caddyStatus',
         dataType : 'json',
         success : function(data) {
             if (data.success) {
-                $("#nginxStatus").html(data.obj);
+                $("#caddyStatus").html(data.obj);
             }
         },
         error : function() {
@@ -312,7 +312,7 @@ function selectRootCustom(inputId){
 function diffUsingJS() {
     // get the baseText and newText values from the two textboxes, and split them into lines
     var base = difflib.stringAsLines($("#org").val());
-    var newtxt = difflib.stringAsLines($("#nginxContent").val());
+    var newtxt = difflib.stringAsLines($("#caddyContent").val());
 
     // create a SequenceMatcher instance that diffs the two sets of lines
     var sm = new difflib.SequenceMatcher(base, newtxt);
@@ -407,7 +407,7 @@ function runCmd(type){
         }
     });
 
-    nginxStatus();
+    caddyStatus();
 
 }
 
@@ -448,7 +448,7 @@ function runCmdOver(){
             }
 
             setTimeout(() => {
-                nginxStatus();
+                caddyStatus();
             }, 3000);
         },
         error : function() {
