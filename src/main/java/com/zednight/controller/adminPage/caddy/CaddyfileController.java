@@ -94,14 +94,6 @@ public class CaddyfileController extends BaseController {
         String caddyContent = Base64.decodeStr(jsonObject.getStr("caddyContent"), CharsetUtil.CHARSET_UTF_8);
         caddyContent = URLDecoder.decode(caddyContent, CharsetUtil.CHARSET_UTF_8).replace("<wave>", "~");
 
-        List<String> subContent = jsonObject.getJSONArray("subContent").toList(String.class);
-        for (int i = 0; i < subContent.size(); i++) {
-            String content = Base64.decodeStr(subContent.get(i), CharsetUtil.CHARSET_UTF_8);
-            content = URLDecoder.decode(content, CharsetUtil.CHARSET_UTF_8).replace("<wave>", "~");
-            subContent.set(i, content);
-        }
-        List<String> subName = jsonObject.getJSONArray("subName").toList(String.class);
-
         if (caddyPath == null) {
             caddyPath = settingService.get("caddyPath");
         }
@@ -111,12 +103,12 @@ public class CaddyfileController extends BaseController {
             return renderError(m.get("confStr.error2"));
         }
 
-//		if (!FileUtil.exist(caddyPath)) {
-//			return renderError(m.get("confStr.error1"));
-//		}
+		if (!FileUtil.exist(caddyPath)) {
+			return renderError(m.get("confStr.error1"));
+		}
 
         try {
-//            caddyService.replace(caddyPath, caddyContent, subContent, subName);
+            caddyService.replace(caddyPath, caddyContent);
             return renderSuccess(m.get("confStr.replaceSuccess"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,30 +151,16 @@ public class CaddyfileController extends BaseController {
         String cmd = null;
 
         FileUtil.del(InitConfig.home + "temp");
-        String fileTemp = InitConfig.home + "temp/caddy.conf";
+        String fileTemp = InitConfig.home + "temp/Caddyfile";
 
         try {
             ConfExt confExt = caddyService.buildConf(StrUtil.isNotEmpty(decompose) && decompose.equals("true"), true);
             FileUtil.writeString(confExt.getConf(), fileTemp, CharsetUtil.CHARSET_UTF_8);
 
-            ClassPathResource resource = new ClassPathResource("mime.types");
-            FileUtil.writeFromStream(resource.getInputStream(), InitConfig.home + "temp/mime.types");
-
-            for (int i = 0; i < confExt.getFileList().size(); i++) {
-                String subName = confExt.getFileList().get(i).getName();
-                String subContent = confExt.getFileList().get(i).getConf();
-
-                String tagert = fileTemp.replace("caddy.conf", "conf.d/" + subName).replace(" ", "_");
-                FileUtil.writeString(subContent, tagert, StandardCharsets.UTF_8); // 清空
-            }
-
             if (SystemTool.isWindows()) {
-                cmd = caddyExe + " -t -c " + fileTemp + " -p " + caddyDir;
+                cmd = caddyExe + " validate -config " + fileTemp;
             } else {
-                cmd = caddyExe + " -t -c " + fileTemp;
-                if (StrUtil.isNotEmpty(caddyDir)) {
-                    cmd += " -p " + caddyDir;
-                }
+                cmd = caddyExe + " validate -config " + fileTemp;
             }
             rs = RuntimeUtil.execForStr(cmd);
         } catch (Exception e) {
@@ -191,7 +169,7 @@ public class CaddyfileController extends BaseController {
         }
 
         cmd = "<span class='blue'>" + cmd + "</span>";
-        if (rs.contains("successful")) {
+        if (rs.contains("Valid configuration")) {
             return renderSuccess(cmd + "<br>" + m.get("confStr.verifySuccess") + "<br>" + rs.replace("\n", "<br>"));
         } else {
             return renderError(cmd + "<br>" + m.get("confStr.verifyFail") + "<br>" + rs.replace("\n", "<br>"));
@@ -227,20 +205,15 @@ public class CaddyfileController extends BaseController {
         }
 
         try {
-            String cmd = caddyExe + " -s reload -c " + caddyPath;
-            if (StrUtil.isNotEmpty(caddyDir)) {
-                cmd += " -p " + caddyDir;
-            }
+            String cmd = caddyExe + " reload --config " + caddyPath;
             String rs = RuntimeUtil.execForStr(cmd);
-
             cmd = "<span class='blue'>" + cmd + "</span>";
-            if (StrUtil.isEmpty(rs) || rs.contains("signal process started")) {
+            if (StrUtil.isEmpty(rs) || rs.contains("using adjacent Caddyfile")) {
                 return renderSuccess(cmd + "<br>" + m.get("confStr.reloadSuccess") + "<br>" + rs.replace("\n", "<br>"));
             } else {
-                if (rs.contains("The system cannot find the file specified") || rs.contains("caddy.pid") || rs.contains("PID")) {
+                if (rs.contains(" no config file to load") || rs.contains("caddy.pid") || rs.contains("PID")) {
                     rs = rs + m.get("confStr.mayNotRun");
                 }
-
                 return renderError(cmd + "<br>" + m.get("confStr.reloadFail") + "<br>" + rs.replace("\n", "<br>"));
             }
         } catch (Exception e) {

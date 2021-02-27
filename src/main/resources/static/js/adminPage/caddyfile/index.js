@@ -48,7 +48,7 @@ function caddyStatus() {
 
 function replace() {
     if ($("#caddyPath").val() == '') {
-        layer.msg(confStr.jserror2);
+        layer.msg(confStr.jserror5);
         return;
     }
 
@@ -58,13 +58,6 @@ function replace() {
     json.caddyContent = Base64.encode(encodeURIComponent($("#caddyContent").val().replace(/\~/g, "<wave>")));
     json.subContent = [];
     json.subName = [];
-    $("textarea[name='subContent']").each(function(){
-        json.subContent.push(Base64.encode(encodeURIComponent($(this).val().replace(/\~/g, "<wave>"))));
-    })
-    $("input[name='subName']").each(function(){
-        json.subName.push($(this).val());
-    })
-
     $.ajax({
         type : 'POST',
         url : ctx + '/adminPage/caddyfile/replace',
@@ -173,18 +166,18 @@ function showHide(id){
 
 function check() {
     if ($("#caddyPath").val() == '') {
-        layer.msg(confStr.jserror2);
+        layer.msg(confStr.jserror5);
         return;
     }
 
     if ($("#caddyExe").val() == '') {
-        layer.msg(confStr.jserror3);
+        layer.msg(confStr.jserror6);
         return;
     }
 
     if($("#caddyExe").val().indexOf('/') > -1 || $("#caddyExe").val().indexOf('\\') > -1){
         if ($("#caddyDir").val() == '') {
-            layer.msg(confStr.jserror4);
+            layer.msg(confStr.jserror7);
             return;
         }
     }
@@ -194,9 +187,9 @@ function check() {
         type : 'POST',
         url : ctx + '/adminPage/caddyfile/check',
         data : {
-            nginxPath : $("#nginxPath").val(),
-            nginxExe : $("#nginxExe").val(),
-            nginxDir : $("#nginxDir").val()
+            caddyPath : $("#caddyPath").val(),
+            caddyExe : $("#caddyExe").val(),
+            caddyDir : $("#caddyDir").val()
         },
         dataType : 'json',
         success : function(data) {
@@ -223,19 +216,19 @@ function check() {
 }
 
 function reload() {
-    if ($("#nginxPath").val() == '') {
-        layer.msg(confStr.jserror2);
+    if ($("#caddyPath").val() == '') {
+        layer.msg(confStr.jserror5);
         return;
     }
 
-    if ($("#nginxExe").val() == '') {
-        layer.msg(confStr.jserror3);
+    if ($("#caddyExe").val() == '') {
+        layer.msg(confStr.jserror6);
         return;
     }
 
-    if($("#nginxExe").val().indexOf('/') > -1 || $("#nginxExe").val().indexOf('\\') > -1){
-        if ($("#nginxDir").val() == '') {
-            layer.msg(confStr.jserror4);
+    if($("#caddyExe").val().indexOf('/') > -1 || $("#caddyExe").val().indexOf('\\') > -1){
+        if ($("#caddyDir").val() == '') {
+            layer.msg(confStr.jserror7);
             return;
         }
     }
@@ -243,11 +236,11 @@ function reload() {
     layer.load();
     $.ajax({
         type : 'POST',
-        url : ctx + '/adminPage/conf/reload',
+        url : ctx + '/adminPage/caddyfile/reload',
         data : {
-            nginxPath : $("#nginxPath").val(),
-            nginxExe : $("#nginxExe").val(),
-            nginxDir : $("#nginxDir").val()
+            caddyPath : $("#caddyPath").val(),
+            caddyExe : $("#caddyExe").val(),
+            caddyDir : $("#caddyDir").val()
         },
         dataType : 'json',
         success : function(data) {
@@ -362,8 +355,8 @@ function runCmd(type){
         success : function(data) {
             //debugger;
             if(data.success){
-                $("#nginxStop").hide();
-                $("#nginxStart").hide();
+                $("#caddyStop").hide();
+                $("#caddyStart").hide();
 
 
 
@@ -372,19 +365,19 @@ function runCmd(type){
 
                 var cmd = data.obj;
                 if(type == 'cmdStop'){
-                    $("#nginxStop").show();
+                    $("#caddyStop").show();
                     $("#stopNormal").prop("checked",true);
 
-                    $("#nginxStop input[name='cmd']").each(function(){
+                    $("#caddyStop input[name='cmd']").each(function(){
                         if($(this).attr("title") == cmd){
                             $(this).prop("checked",true);
                         }
                     })
                 } else {
-                    $("#nginxStart").show();
+                    $("#caddyStart").show();
                     $("#startNormal").prop("checked",true);
 
-                    $("#nginxStart input[name='cmd']").each(function(){
+                    $("#caddyStart input[name='cmd']").each(function(){
                         if($(this).attr("title") == cmd){
                             $(this).prop("checked",true);
                         }

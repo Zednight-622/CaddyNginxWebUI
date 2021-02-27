@@ -284,40 +284,15 @@ public class CaddyfileService {
         return new NgxDumper(ngxConfig).dump().replace("};", "  }");
     }
 
-    public void replace(String caddyPath, String caddyContent, List<String> subContent, List<String> subName) {
+    public void replace(String caddyPath, String caddyContent) {
         String date = DateUtil.format(new Date(), "yyyy-MM-dd_HH-mm-ss");
         // 备份主文件
         if (FileUtil.exist(caddyPath)) {
             FileUtil.mkdir(InitConfig.home + "bak");
-            FileUtil.copy(caddyPath, InitConfig.home + "bak/caddyfile." + date + ".bak", true);
+            FileUtil.copy(caddyPath, InitConfig.home + "bak/Caddyfile." + date + ".bak", true);
         }
-
-        // 备份conf.d文件夹
-        String confd = caddyPath.replace("caddyfile.txt", "conf.d/");
-        if (!FileUtil.exist(confd)) {
-            FileUtil.mkdir(confd);
-        } else {
-            ZipUtil.zip(confd, InitConfig.home + "bak/nginx.conf." + date + ".zip");
-        }
-
-        // 删除conf.d下全部文件
-        FileUtil.del(confd);
-        FileUtil.mkdir(confd);
-
         // 写入主文件
-        FileUtil.writeString(caddyContent, caddyPath.replace(" ", "_"), StandardCharsets.UTF_8);
-        String decompose = settingService.get("decompose");
-
-        if ("true".equals(decompose)) {
-            // 写入conf.d文件
-            if (subContent != null) {
-                for (int i = 0; i < subContent.size(); i++) {
-                    String tagert = caddyPath.replace("nginx.conf", "conf.d/" + subName.get(i)).replace(" ", "_");
-                    FileUtil.writeString(subContent.get(i), tagert, StandardCharsets.UTF_8); // 清空
-                }
-            }
-        }
-
+        FileUtil.writeString(caddyContent, caddyPath, StandardCharsets.UTF_8);
     }
 
     public AsycPack getAsycPack() {
@@ -423,15 +398,7 @@ public class CaddyfileService {
 
         if (FileUtil.exist(nginxPath)) {
 
-            List<String> subContent = new ArrayList<>();
-            List<String> subName = new ArrayList<>();
-
-            for (ConfFile confFile : confExt.getFileList()) {
-                subContent.add(confFile.getConf());
-                subName.add(confFile.getName());
-            }
-
-            replace(nginxPath, confExt.getConf(), subContent, subName);
+            replace(nginxPath, confExt.getConf());
         }
     }
 
