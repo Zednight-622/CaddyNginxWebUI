@@ -1,5 +1,6 @@
 package com.zednight.test;
 
+import cn.hutool.crypto.digest.MD5;
 import com.github.odiszapc.nginxparser.NgxBlock;
 import com.github.odiszapc.nginxparser.NgxParam;
 import org.junit.jupiter.api.AfterAll;
@@ -42,6 +43,15 @@ public class MainTest {
 	@BeforeAll
 	static void before() {
 		System.out.println("--------------测试开始----------");
+	}
+
+	@Test
+	public void encryption() {
+		MD5 md5 = MD5.create();
+		String password1 = md5.digestHex("pass");
+		String password2 = md5.digestHex("pass");
+		System.out.println(password1);
+		System.out.println(password2);
 	}
 
 	@Test

@@ -9,6 +9,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import cn.hutool.crypto.digest.MD5;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,14 +68,7 @@ public class AdminController extends BaseController {
 				return renderError(m.get("adminStr.nameRepetition"));
 			}
 		}
-
-		if (admin.getAuth()) {
-			admin.setKey(authUtils.makeKey());
-		} else {
-			admin.setKey("");
-		}
-
-		sqlHelper.insertOrUpdate(admin);
+		adminService.addAdminForUpdate(admin);
 
 		return renderSuccess();
 	}
