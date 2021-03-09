@@ -77,5 +77,4 @@ public class RemoteService {
 			return false;
 		}
 	}
-
 }

@@ -67,7 +67,7 @@ function network(){
 				var networkInfo = data.obj;
 				netList.push(networkInfo);
 				
-				if(netList.length > 10){
+				if(netList.length > 20){
 					netList.splice(0, 1); 
 				}
 				
