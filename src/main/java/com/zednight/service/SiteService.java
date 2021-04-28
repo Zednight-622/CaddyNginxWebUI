@@ -66,12 +66,16 @@ public class SiteService {
         if (StrUtil.isNotEmpty(siteParamJson) && JSONUtil.isJson(siteParamJson)) {
             paramList = JSONUtil.toList(JSONUtil.parseArray(siteParamJson), Param.class);
         }
+        sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), Param.class);
         Collections.reverse(paramList);
         for (Param param : paramList) {
             param.setSiteId(site.getId());
             sqlHelper.insert(param);
         }
-
+        List<String> toIds = sqlHelper.findIdsByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), To.class);
+        for (String toId : toIds) {
+            sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("toId", toId), Param.class);
+        }
         sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("siteId", site.getId()), To.class);
 
         if (tos != null) {
@@ -87,7 +91,6 @@ public class SiteService {
                 if (StrUtil.isNotEmpty(to.getToParamJson()) && JSONUtil.isJson(to.getToParamJson())) {
                     paramList = JSONUtil.toList(JSONUtil.parseArray(to.getToParamJson()), Param.class);
                 }
-
                 // 反向插入,保证列表与输入框对应
                 Collections.reverse(paramList);
                 for (Param param : paramList) {
@@ -100,6 +103,11 @@ public class SiteService {
 
     public void deleteById(String id) {
         sqlHelper.deleteById(id, Site.class);
-        sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("site", id), To.class);
+        List<String> ids = sqlHelper.findIdsByQuery(new ConditionAndWrapper().eq("site_id", id), To.class);
+        sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("siteId", id), Param.class);
+        for (String s : ids) {
+            sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("toId", s), Param.class);
+        }
+        sqlHelper.deleteByQuery(new ConditionAndWrapper().eq("siteId", id), To.class);
     }
 }

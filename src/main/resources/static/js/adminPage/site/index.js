@@ -148,8 +148,8 @@ function showWindow(title) {
 }
 
 function addOver() {
-	if ($("#port").val().trim() == '') {
-		layer.msg(serverStr.noPort);
+	if ($("#port").val().trim() === '' && $("#ip").val().trim() === '') {
+		layer.msg(serverStr.noIPnoPort);
 		return;
 	}
 	var site = {};

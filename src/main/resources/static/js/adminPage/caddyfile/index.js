@@ -442,7 +442,7 @@ function runCmdOver(){
 
             setTimeout(() => {
                 caddyStatus();
-            }, 3000);
+            }, 1000);
         },
         error : function() {
 

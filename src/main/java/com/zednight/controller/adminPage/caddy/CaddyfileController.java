@@ -158,9 +158,9 @@ public class CaddyfileController extends BaseController {
             FileUtil.writeString(confExt.getConf(), fileTemp, CharsetUtil.CHARSET_UTF_8);
 
             if (SystemTool.isWindows()) {
-                cmd = caddyExe + " validate -config " + fileTemp;
+                cmd = caddyExe + " validate --config " + fileTemp;
             } else {
-                cmd = caddyExe + " validate -config " + fileTemp;
+                cmd = caddyExe + " validate --config " + fileTemp;
             }
             rs = RuntimeUtil.execForStr(cmd);
         } catch (Exception e) {
@@ -168,11 +168,11 @@ public class CaddyfileController extends BaseController {
             rs = e.getMessage().replace("\n", "<br>");
         }
 
-        cmd = "<span class='blue'>" + cmd + "</span>";
+        cmd = "<span class='blue'>" + "执行命令如下：" + cmd + "</span>";
         if (rs.contains("Valid configuration")) {
-            return renderSuccess(cmd + "<br>" + m.get("confStr.verifySuccess") + "<br>" + rs.replace("\n", "<br>"));
+            return renderSuccess(cmd + "<br> <span class='green' style='font-size:18px'>" + m.get("confStr.verifySuccess") + "</span> <br>" + "<br> 控制台输出如下：<br>" + rs.replace("\n", "<br>"));
         } else {
-            return renderError(cmd + "<br>" + m.get("confStr.verifyFail") + "<br>" + rs.replace("\n", "<br>"));
+            return renderError(cmd + "<br> <span class='red' style='font-size:18px'>" + m.get("confStr.verifyFail") + "</span> <br>" + "<br> 控制台输出如下：<br>" + rs.replace("\n", "<br>"));
         }
     }
 
@@ -207,14 +207,14 @@ public class CaddyfileController extends BaseController {
         try {
             String cmd = caddyExe + " reload --config " + caddyPath;
             String rs = RuntimeUtil.execForStr(cmd);
-            cmd = "<span class='blue'>" + cmd + "</span>";
-            if (StrUtil.isEmpty(rs) || rs.contains("using adjacent Caddyfile")) {
-                return renderSuccess(cmd + "<br>" + m.get("confStr.reloadSuccess") + "<br>" + rs.replace("\n", "<br>"));
+            cmd = "<span class='blue'>" + "执行命令如下：" + cmd + "</span>";
+            if (StrUtil.isEmpty(rs) || rs.contains("using provided configuration")) {
+                return renderSuccess(cmd + "<br> <span class='green' style='font-size:18px'>" + m.get("confStr.reloadSuccess") + "</span> <br>" + "<br> 控制台输出如下：<br>" + rs.replace("\n", "<br>"));
             } else {
                 if (rs.contains(" no config file to load") || rs.contains("caddy.pid") || rs.contains("PID")) {
                     rs = rs + m.get("confStr.mayNotRun");
                 }
-                return renderError(cmd + "<br>" + m.get("confStr.reloadFail") + "<br>" + rs.replace("\n", "<br>"));
+                return renderError(cmd + "<br> <span class='red' style='font-size:18px'>" + m.get("confStr.reloadFail") + "</span> <br>" + "<br> 控制台输出如下：<br>" + rs.replace("\n", "<br>"));
             }
         } catch (Exception e) {
             e.printStackTrace();

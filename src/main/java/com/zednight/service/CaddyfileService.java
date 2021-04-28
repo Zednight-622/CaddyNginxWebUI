@@ -66,13 +66,20 @@ public class CaddyfileService {
                 ngxParam.addValue(g.getName().trim() + " " + g.getValue().trim());
                 globalBlock.addEntry(ngxParam);
             }
-            ngxConfig.addEntry(globalBlock);
+            if(globals.size() != 0) ngxConfig.addEntry(globalBlock);
 
             // 获取Site参数
             List<Site> siteList = sqlHelper.findAll(Site.class);
             for (Site site : siteList) {
                 NgxBlock siteBlock = new NgxBlock();
-                siteBlock.addValue(site.getName());
+                String value = "";
+                if (site.getName() != null && site.getName().length() > 0) {
+                    value += site.getName();
+                }
+                if (site.getPort() != null && site.getPort().length() > 0) {
+                    value += ":" + site.getPort();
+                }
+                siteBlock.addValue(value);
                 if(site.getIsRedir().equals("1")){
                     NgxParam redir = new NgxParam();
                     redir.addValue("redir " + site.getRedirAddress());

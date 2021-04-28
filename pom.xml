@@ -36,7 +36,11 @@
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-jdbc</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>com.github.woostju</groupId>
+			<artifactId>ssh-client-pool</artifactId>
+			<version>1.0.1-RELEASE</version>
+		</dependency>
 		<dependency>
 			<groupId>com.github.odiszapc</groupId>
 			<artifactId>nginxparser</artifactId>

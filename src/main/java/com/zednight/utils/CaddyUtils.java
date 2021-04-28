@@ -8,7 +8,7 @@ public class CaddyUtils {
         if (SystemTool.isWindows()) {
             String[] command = { "tasklist" };
             String rs = RuntimeUtil.execForStr(command);
-            isRun = rs.toLowerCase().contains("caddy.exe");
+            isRun = rs.toLowerCase().contains("caddy");
         } else {
             String[] command = { "/bin/sh", "-c", "ps -ef|grep caddy" };
             String rs = RuntimeUtil.execForStr(command);
